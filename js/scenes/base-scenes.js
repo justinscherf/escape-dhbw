@@ -12,6 +12,7 @@ class LevelScene extends Phaser.Scene {
   setupLevel(stageNumber) {
     this.stageNumber = stageNumber;
     this.stageInfo = STAGES[stageNumber];
+    Display.setupCamera(this.cameras.main);
     this.inputs = new GameInput(this);
     this.finished = false;
     this.hud = new Hud(this, this.stageInfo.hudLabel);
@@ -111,6 +112,7 @@ class LevelScene extends Phaser.Scene {
 class ScreenScene extends Phaser.Scene {
   // Am Anfang von create() aufrufen; Eingaben zählen erst nach inputLockMs
   setupScreen(inputLockMs = 0) {
+    Display.setupCamera(this.cameras.main);
     this.inputs = new GameInput(this);
     this.ready = inputLockMs <= 0;
     if (!this.ready) this.time.delayedCall(inputLockMs, () => { this.ready = true; });

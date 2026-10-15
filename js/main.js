@@ -28,8 +28,9 @@ const gameConfig = {
   type: isOpenedAsFile ? Phaser.CANVAS : Phaser.AUTO,
   loader: isOpenedAsFile ? { imageLoadType: 'HTMLImageElement' } : {},
   parent: 'game',
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
+  // Canvas in Bildschirm-Auflösung; die Kameras zoomen auf die 960 × 540 Spielwelt
+  width: GAME_WIDTH * Display.res,
+  height: GAME_HEIGHT * Display.res,
   backgroundColor: '#111111',
   physics: {
     default: 'arcade',
@@ -45,3 +46,12 @@ const gameConfig = {
 
 // Global erreichbar zum Nachsehen im Browser-Debugger (z. B. escapeGame.scene.getScenes(true))
 window.escapeGame = new Phaser.Game(gameConfig);
+
+// Fenster vergrößert/verkleinert oder auf anderen Bildschirm gezogen: Auflösung nachziehen
+// Direkt nach dem Start nochmal messen (beim Laden kann das Fenster noch 0 × 0 groß sein)
+window.escapeGame.events.once('ready', () => Display.handleResize(window.escapeGame));
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => Display.handleResize(window.escapeGame), 200);
+});

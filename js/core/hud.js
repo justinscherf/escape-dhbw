@@ -16,7 +16,7 @@ class Hud {
     this.extraText = fixed(scene.add.text(16, 46, '', textStyle(16, CSS.accent)));
     this.hearts = [];
     for (let i = 0; i < START_LIVES; i++) {
-      this.hearts.push(fixed(scene.add.image(GAME_WIDTH - 90 + i * 30, 20, TEX.heart)));
+      this.hearts.push(fixed(hiRes(scene.add.image(GAME_WIDTH - 90 + i * 30, 20, TEX.heart))));
     }
     this.soundOffText = fixed(scene.add.text(GAME_WIDTH - 16, 46, '🔇 Klick für Ton', textStyle(13, CSS.accent, FONT_BODY)).setOrigin(1, 0));
     this.shownLives = GameState.lives;
@@ -35,7 +35,7 @@ class Hud {
     if (GameState.lives !== this.shownLives) {
       // verlorenes bzw. neu gewonnenes Herz kurz aufploppen lassen
       const changedHeart = this.hearts[Math.min(GameState.lives, this.shownLives)];
-      this.scene.tweens.add({ targets: changedHeart, scale: 1.8, duration: 140, yoyo: true, repeat: 1 });
+      this.scene.tweens.add({ targets: changedHeart, scale: hiResScale(1.8), duration: 140, yoyo: true, repeat: 1 });
     }
     this.shownLives = GameState.lives;
     this.soundOffText.setVisible(!SFX.isRunning());

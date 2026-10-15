@@ -12,6 +12,13 @@ const GAME_HEIGHT = 540;
 const START_LIVES = 3;
 const MAX_FRAME_MS = 50; // längere Frames (z. B. nach einem Tab-Wechsel) werden gekappt
 
+// Auflösung: das Canvas wächst mit Fenster und Retina-Display (siehe core/display.js)
+const DISPLAY = Object.freeze({
+  maxRes: 3,          // höchstens 3-fache Auflösung (2880 × 1620)
+  resStep: 0.25,      // Auflösung in Viertelschritten
+  textureRes: 3       // erzeugte Texturen werden 3-fach gezeichnet und verkleinert angezeigt
+});
+
 const SCENES = Object.freeze({
   boot: 'BootScene',
   menu: 'MenuScene',

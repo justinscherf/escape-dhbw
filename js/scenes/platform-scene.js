@@ -27,7 +27,7 @@ class PlatformScene extends LevelScene {
     this.physics.world.setBoundsCollision(true, true, true, false); // unten offen: Absturz in den Lichthof
     // Kamera endet knapp unter dem EG, damit dort viel vom Atrium zu sehen ist
     const groundFloor = LEVEL3.floors[LEVEL3.floors.length - 1];
-    this.cameras.main.setBounds(0, 0, PLATFORM.worldWidth, groundFloor.y + 80);
+    this.cameraBounds = { width: PLATFORM.worldWidth, height: groundFloor.y + 80 };
     this.cameras.main.setBackgroundColor('#e6e9ed');
 
     this.drawBackground();
@@ -41,8 +41,7 @@ class PlatformScene extends LevelScene {
     this.createDoor();
     this.setupCollisions();
 
-    this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
-    this.cameras.main.setDeadzone(140, 90);
+    this.followCamera(0);
     this.time.addEvent({ delay: PLATFORM.planeIntervalMs, loop: true, callback: () => this.spawnPlane() });
   }
 
@@ -58,10 +57,39 @@ class PlatformScene extends LevelScene {
     this.updatePlayer(dt);
     this.updateEnemies();
     this.updatePlanes();
+    this.followCamera(dt);
 
     const coffeeInfo = this.coffeeMs > 0 ? `   ☕ ${(this.coffeeMs / 1000).toFixed(1)}s` : '';
     this.hud.setExtra(`ECTS ${GameState.ects}${coffeeInfo}`);
     this.endFrame();
+  }
+
+  // ---------- Kamera ----------
+  // Folgt dem Spieler mit Totzone in der Bildmitte und weichem Nachziehen.
+  // Eigene Umsetzung, weil die Kamera für die hohe Auflösung von oben links zoomt.
+  // dt = 0: sofort hinspringen (Levelstart)
+  followCamera(dt) {
+    const camera = this.cameras.main;
+    const deadzone = { x: (GAME_WIDTH - 140) / 2, y: (GAME_HEIGHT - 90) / 2 };
+    let targetX = camera.scrollX;
+    let targetY = camera.scrollY;
+    const px = this.player.x - targetX;
+    const py = this.player.y - targetY;
+    if (dt === 0 || px < deadzone.x) targetX = this.player.x - deadzone.x;
+    else if (px > GAME_WIDTH - deadzone.x) targetX = this.player.x - (GAME_WIDTH - deadzone.x);
+    if (dt === 0 || py < deadzone.y) targetY = this.player.y - deadzone.y;
+    else if (py > GAME_HEIGHT - deadzone.y) targetY = this.player.y - (GAME_HEIGHT - deadzone.y);
+    if (dt === 0) {
+      targetX = this.player.x - GAME_WIDTH / 2;
+      targetY = this.player.y - GAME_HEIGHT / 2;
+    }
+    targetX = Phaser.Math.Clamp(targetX, 0, this.cameraBounds.width - GAME_WIDTH);
+    targetY = Phaser.Math.Clamp(targetY, 0, this.cameraBounds.height - GAME_HEIGHT);
+    const follow = dt === 0 ? 1 : 1 - Math.pow(1 - 0.12, dt / 16.67);
+    camera.setScroll(
+      Phaser.Math.Linear(camera.scrollX, targetX, follow),
+      Phaser.Math.Linear(camera.scrollY, targetY, follow)
+    );
   }
 
   // ---------- Hintergrund: Flure mit Räumen ----------
@@ -278,6 +306,7 @@ class PlatformScene extends LevelScene {
   // ---------- Aufbau ----------
   addPlatform(x, y, width, height = 32) {
     const tile = this.add.tileSprite(x + width / 2, y + height / 2, width, height, TEX.floorTile).setDepth(1);
+    tile.setTileScale(hiResScale(1));
     this.platforms.add(tile);
   }
 
@@ -307,21 +336,22 @@ class PlatformScene extends LevelScene {
     const g = this.add.graphics().setDepth(2);
     g.fillStyle(COLORS.wetFloor, 0.7);
     g.fillRect(wet.x0, wet.y - 3, wet.x1 - wet.x0, 6);
-    this.add.image(wet.x0 + 20, wet.y - 20, TEX.wetSign).setDepth(2);
+    hiRes(this.add.image(wet.x0 + 20, wet.y - 20, TEX.wetSign)).setDepth(2);
     this.add.text(wet.x0 + 50, wet.y - 40, 'VORSICHT NASS', textStyle(12, CSS.accent)).setDepth(2);
   }
 
   // Stuhlstapel (drüberspringen) und Tische (draufspringen)
   buildObstacles() {
     this.obstacles = this.physics.add.staticGroup();
-    LEVEL3.chairs.forEach(({ x, y }) => this.obstacles.add(this.add.image(x, y - 32, TEX.chairs).setDepth(2)));
-    LEVEL3.tables.forEach(({ x, y }) => this.obstacles.add(this.add.image(x, y - 18, TEX.table).setDepth(2)));
+    // erst verkleinern, dann zur Gruppe – statische Körper übernehmen die Größe beim Hinzufügen
+    LEVEL3.chairs.forEach(({ x, y }) => this.obstacles.add(hiRes(this.add.image(x, y - 32, TEX.chairs)).setDepth(2)));
+    LEVEL3.tables.forEach(({ x, y }) => this.obstacles.add(hiRes(this.add.image(x, y - 18, TEX.table)).setDepth(2)));
   }
 
   createPlayer() {
     const { x, y } = this.checkpoint;
-    this.player = this.physics.add.sprite(x, y, TEX.playerIdle).setDepth(10);
-    this.player.body.setSize(18, 42).setOffset(5, 4);
+    this.player = hiRes(this.physics.add.sprite(x, y, TEX.playerIdle)).setDepth(10);
+    this.player.body.setSize(texturePixels(18), texturePixels(42)).setOffset(texturePixels(5), texturePixels(4));
     this.player.body.setMaxVelocityY(PLATFORM.maxFallSpeed);
     this.player.setCollideWorldBounds(true);
   }
@@ -329,7 +359,7 @@ class PlatformScene extends LevelScene {
   createEnemies() {
     this.enemies = this.physics.add.group({ allowGravity: false, immovable: true });
     const addPatroller = (data, texture, offsetY, quote) => {
-      const enemy = this.enemies.create(data.x, data.y - offsetY, texture).setDepth(9);
+      const enemy = hiRes(this.enemies.create(data.x, data.y - offsetY, texture)).setDepth(9);
       enemy.setData({ minX: data.minX, maxX: data.maxX, speed: data.speed, quote });
       enemy.setVelocityX(data.speed);
       return enemy;
@@ -347,21 +377,21 @@ class PlatformScene extends LevelScene {
       this.tweens.add({ targets: target, y: target.y - distance, duration: 600 + Math.random() * 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     };
     this.coins = this.physics.add.group({ allowGravity: false, immovable: true });
-    LEVEL3.coins.forEach(([x, y]) => bob(this.coins.create(x, y, TEX.ects).setDepth(5), 6));
+    LEVEL3.coins.forEach(([x, y]) => bob(hiRes(this.coins.create(x, y, TEX.ects)).setDepth(5), 6));
 
     this.hearts = this.physics.add.group({ allowGravity: false, immovable: true });
-    LEVEL3.hearts.forEach(({ x, y }) => bob(this.hearts.create(x, y, TEX.heart).setDepth(5).setScale(1.3), 8));
+    LEVEL3.hearts.forEach(({ x, y }) => bob(hiRes(this.hearts.create(x, y, TEX.heart), 1.3).setDepth(5), 8));
 
     this.coffees = this.physics.add.group({ allowGravity: false, immovable: true });
     LEVEL3.coffees.forEach(({ x, y }) => {
-      const coffee = this.coffees.create(x, y, TEX.coffee).setDepth(5);
+      const coffee = hiRes(this.coffees.create(x, y, TEX.coffee)).setDepth(5);
       this.tweens.add({ targets: coffee, angle: 10, duration: 400, yoyo: true, repeat: -1 });
     });
   }
 
   createDoor() {
     const { x, y } = LEVEL3.door;
-    this.add.image(x, y, TEX.entrance).setOrigin(0.5, 1).setDepth(3);
+    hiRes(this.add.image(x, y, TEX.entrance)).setOrigin(0.5, 1).setDepth(3);
     this.add.text(x, y - 160, 'Haupteingang · Lerchenstraße', textStyle(12, CSS.darkGray, FONT_BODY)).setOrigin(0.5).setDepth(3);
     const sign = addBlinkingText(this, x, y - 132, 'EXIT', {
       fontFamily: FONT, fontSize: '16px', color: '#ffffff', backgroundColor: '#1f9d55', padding: { x: 8, y: 2 }
@@ -508,7 +538,7 @@ class PlatformScene extends LevelScene {
   spawnPlane() {
     if (this.finished || this.player.x < LEVEL3.floors[1].x0) return;
     const baseY = this.player.y - 10 - Math.random() * 40;
-    const plane = this.planes.create(this.cameras.main.scrollX + GAME_WIDTH + 40, baseY, TEX.plane).setDepth(9);
+    const plane = hiRes(this.planes.create(this.cameras.main.scrollX + GAME_WIDTH + 40, baseY, TEX.plane)).setDepth(9);
     plane.setVelocityX(-PLATFORM.planeSpeed);
     plane.setData({ baseY, phase: Math.random() * Math.PI * 2 });
   }
@@ -552,7 +582,7 @@ class PlatformScene extends LevelScene {
       speed: { min: 40, max: 140 },
       angle: { min: 200, max: 340 },
       lifespan: 400,
-      scale: { start: 1, end: 0 },
+      scale: { start: hiResScale(1), end: 0 },
       tint,
       gravityY: 300,
       emitting: false

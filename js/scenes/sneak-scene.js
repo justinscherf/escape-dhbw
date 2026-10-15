@@ -145,15 +145,15 @@ class SneakScene extends LevelScene {
     this.backpacks = SNEAK_LAYOUT.backpacks.map(({ x, y }) => ({
       x,
       y,
-      image: this.add.image(x, y, TEX.backpack).setDepth(3).setAngle(randRange(-30, 30)),
+      image: hiRes(this.add.image(x, y, TEX.backpack)).setDepth(3).setAngle(randRange(-30, 30)),
       cooldownMs: 0
     }));
   }
 
   buildEcts() {
     this.ectsCoins = SNEAK_LAYOUT.ects.map(({ x, y }) => {
-      const image = this.add.image(x, y, TEX.ects).setDepth(6);
-      this.tweens.add({ targets: image, scale: 1.2, duration: 500 + Math.random() * 200, yoyo: true, repeat: -1 });
+      const image = hiRes(this.add.image(x, y, TEX.ects)).setDepth(6);
+      this.tweens.add({ targets: image, scale: hiResScale(1.2), duration: 500 + Math.random() * 200, yoyo: true, repeat: -1 });
       return { x, y, image, collected: false };
     });
     this.ectsCollected = 0;
@@ -162,8 +162,8 @@ class SneakScene extends LevelScene {
 
   buildHearts() {
     this.heartPickups = SNEAK_LAYOUT.hearts.map(({ x, y }) => {
-      const image = this.add.image(x, y, TEX.heart).setDepth(6);
-      this.tweens.add({ targets: image, scale: 1.25, duration: 450, yoyo: true, repeat: -1 });
+      const image = hiRes(this.add.image(x, y, TEX.heart)).setDepth(6);
+      this.tweens.add({ targets: image, scale: hiResScale(1.25), duration: 450, yoyo: true, repeat: -1 });
       return { x, y, image, collected: false };
     });
   }
@@ -208,8 +208,8 @@ class SneakScene extends LevelScene {
 
   createPlayer() {
     const { seat } = SNEAK_LAYOUT;
-    this.player = this.physics.add.image(seat.x, seat.y, TEX.playerTop).setDepth(9);
-    this.player.body.setCircle(11, 4, 4);
+    this.player = hiRes(this.physics.add.image(seat.x, seat.y, TEX.playerTop)).setDepth(9);
+    this.player.body.setCircle(texturePixels(11), texturePixels(4), texturePixels(4));
     this.physics.add.collider(this.player, this.solids);
   }
 

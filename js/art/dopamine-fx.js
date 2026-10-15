@@ -21,7 +21,7 @@ class DopamineFx {
     this.hearts = scene.add.particles(0, 0, TEX.heart, {
       speed: { min: 80, max: 240 },
       angle: { min: 200, max: 340 },
-      scale: { start: 0.7, end: 0.1 },
+      scale: { start: hiResScale(0.7), end: hiResScale(0.1) },
       alpha: { start: 1, end: 0 },
       rotate: { min: -40, max: 40 },
       lifespan: 800,
@@ -30,11 +30,12 @@ class DopamineFx {
     }).setDepth(26);
     this.sparks = scene.add.particles(0, 0, TEX.pixel, {
       speed: { min: 120, max: 320 },
-      scale: { start: 1.2, end: 0 },
+      scale: { start: hiResScale(1.2), end: 0 },
       lifespan: 500,
       tint: [COLORS.dopamine, COLORS.accent, 0x3bb7ff, 0xffffff],
       emitting: false
     }).setDepth(26);
+    this.zoomPunch = { factor: 1 };
     this.streakText = scene.add.text(LECTURE_LAYOUT.phone.x, 128, '', textStyle(26, CSS.accent))
       .setOrigin(0.5).setDepth(30).setAlpha(0);
   }
@@ -68,9 +69,23 @@ class DopamineFx {
   burst(ratio, x, y, isViral) {
     this.hearts.explode(Math.round(1 + ratio * 6 + (isViral ? 10 : 0)), x, y);
     this.sparks.explode(Math.round(4 + ratio * 16), x, y);
-    this.scene.tweens.killTweensOf(this.camera);
-    this.camera.setZoom(1);
-    this.scene.tweens.add({ targets: this.camera, zoom: 1 + 0.008 + DOPAMINE_FX.maxZoomPunch * ratio, duration: 70, yoyo: true });
+    this.scene.tweens.killTweensOf(this.zoomPunch);
+    this.zoomPunch.factor = 1;
+    this.scene.tweens.add({
+      targets: this.zoomPunch,
+      factor: 1 + 0.008 + DOPAMINE_FX.maxZoomPunch * ratio,
+      duration: 70,
+      yoyo: true,
+      onUpdate: () => this.applyZoomPunch(),
+      onComplete: () => this.applyZoomPunch()
+    });
+  }
+
+  // Zoomt um die Bildmitte (die Kamera zoomt sonst von der linken oberen Ecke aus)
+  applyZoomPunch() {
+    const factor = this.zoomPunch.factor;
+    this.camera.setZoom(Display.res * factor);
+    this.camera.setScroll((GAME_WIDTH / 2) * (1 - 1 / factor), (GAME_HEIGHT / 2) * (1 - 1 / factor));
   }
 
   showStreak(streak) {

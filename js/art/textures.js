@@ -44,11 +44,14 @@ const PLAYER_POSES = Object.freeze({
   fall: { frontLeg: 15, backLeg: -25, frontArm: 120, backArm: -120, bob: 0 }
 });
 
-// Zeichnet in ein unsichtbares Graphics-Objekt und speichert das Ergebnis als Textur
+// Zeichnet in ein unsichtbares Graphics-Objekt und speichert das Ergebnis als Textur.
+// Gezeichnet wird in Spielpunkten, gespeichert DISPLAY.textureRes-fach – angezeigt
+// werden die Texturen mit hiRes() wieder in Normalgröße, aber gestochen scharf.
 function bakeTexture(scene, key, width, height, draw) {
   const g = scene.make.graphics({ x: 0, y: 0 }, false);
+  g.setScale(DISPLAY.textureRes);
   draw(g);
-  g.generateTexture(key, width, height);
+  g.generateTexture(key, width * DISPLAY.textureRes, height * DISPLAY.textureRes);
   g.destroy();
 }
 

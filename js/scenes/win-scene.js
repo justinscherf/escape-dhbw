@@ -56,7 +56,7 @@ class WinScene extends ScreenScene {
     g.fillRoundedRect(310, 420, 40, 60, 10);
     g.fillRoundedRect(610, 420, 40, 60, 10);
     // Spieler liegt auf dem Sofa
-    this.add.image(470, 400, TEX.playerIdle).setAngle(-80).setScale(1.4);
+    hiRes(this.add.image(470, 400, TEX.playerIdle), 1.4).setAngle(-80);
     this.add.text(545, 380, 'Zzz', textStyle(18, CSS.gray));
   }
 
@@ -67,6 +67,7 @@ class WinScene extends ScreenScene {
       speedX: { min: -40, max: 40 },
       rotate: { min: 0, max: 360 },
       lifespan: 4000,
+      scale: hiResScale(1),
       quantity: 2,
       frequency: 60,
       tint: [COLORS.accent, COLORS.dopamine, COLORS.floorLight, COLORS.success, COLORS.white]
