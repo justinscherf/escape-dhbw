@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escape DHBW</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #0d0d0d;
+    overflow: hidden;
+  }
+  #game {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+</head>
+<body>
+<div id="game"></div>
+
+<!--
+  ESCAPE DHBW – ein Vibe-Coding-Spiel in drei Schritten:
+    1. Vorlesung (Ego-Perspektive): heimlich am Handy scrollen
+    2. Hörsaal (Vogelperspektive): am Blick des Dozenten vorbeischleichen
+    3. Treppenhaus (Jump & Run): runter zum Ausgang und ab nach Hause
+
+  Bewusst normale Skripte statt ES-Module, damit das Spiel auch per Doppelklick
+  ohne Server startet. Die Reihenfolge ist wichtig: Konfiguration → Kern → Grafik → Szenen → Start.
+-->
+<script>
+  // Lädt die Skripte der Reihe nach – mit Zeitstempel, damit der Browser nie
+  // veraltete Versionen aus seinem Zwischenspeicher verwendet
+  const GAME_SCRIPTS = [
+    'js/config.js',
+    'js/level-data.js',
+
+    'js/core/utils.js',
+    'js/core/state.js',
+    'js/core/audio.js',
+    'js/core/music.js',
+    'js/core/input.js',
+    'js/core/hud.js',
+
+    'js/art/textures.js',
+    'js/art/people.js',
+    'js/art/memes.js',
+    'js/art/dopamine-fx.js',
+
+    'js/scenes/base-scenes.js',
+    'js/scenes/boot-scene.js',
+    'js/scenes/menu-scene.js',
+    'js/scenes/stage-intro-scene.js',
+    'js/scenes/lecture-scene.js',
+    'js/scenes/sneak-scene.js',
+    'js/scenes/platform-scene.js',
+    'js/scenes/win-scene.js',
+    'js/scenes/game-over-scene.js',
+
+    'js/main.js'
+  ];
+  const cacheBuster = Date.now();
+  (function loadScript(index) {
+    if (index >= GAME_SCRIPTS.length) return;
+    const script = document.createElement('script');
+    script.src = `${GAME_SCRIPTS[index]}?v=${cacheBuster}`;
+    script.onload = () => loadScript(index + 1);
+    script.onerror = () => console.error(`Skript konnte nicht geladen werden: ${GAME_SCRIPTS[index]}`);
+    document.body.appendChild(script);
+  })(0);
+</script>
+</body>
+</html>
