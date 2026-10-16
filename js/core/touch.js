@@ -30,6 +30,14 @@ const TOUCH_LAYOUTS = Object.freeze({
       { action: 'jump', label: '⤒<br>Sprung', className: 'big' }
     ],
     menuButton: true
+  },
+  kart: {
+    left: [{ action: 'left', label: '◀', className: 'big' }, { action: 'right', label: '▶', className: 'big' }],
+    right: [
+      { action: 'down', label: 'BREMSEN', className: '' },
+      { action: 'action', label: 'GAS', className: 'big' }
+    ],
+    menuButton: true
   }
 });
 

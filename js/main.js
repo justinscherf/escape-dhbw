@@ -44,7 +44,7 @@ const gameConfig = {
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
   audio: { noAudio: true }, // eigene WebAudio-Töne (SFX/Music) statt Phaser-Sound
-  scene: [BootScene, MenuScene, StageIntroScene, LectureScene, SneakScene, PlatformScene, WinScene, GameOverScene]
+  scene: [BootScene, MenuScene, StageIntroScene, LectureScene, SneakScene, PlatformScene, KartScene, WinScene, GameOverScene]
 };
 
 // Global erreichbar zum Nachsehen im Browser-Debugger (z. B. escapeGame.scene.getScenes(true))

@@ -101,10 +101,11 @@
 <div id="rotate-hint"><div style="font-size:56px">📱↻</div>Bitte das Handy quer halten</div>
 
 <!--
-  ESCAPE DHBW – ein Vibe-Coding-Spiel in drei Schritten:
+  ESCAPE DHBW – ein Vibe-Coding-Spiel in vier Schritten:
     1. Vorlesung (Ego-Perspektive): heimlich am Handy scrollen
     2. Hörsaal (Vogelperspektive): am Blick des Dozenten vorbeischleichen
-    3. Treppenhaus (Jump & Run): runter zum Ausgang und ab nach Hause
+    3. Treppenhaus (Jump & Run): runter zum Ausgang
+    4. Heimfahrt (SNES-Kart): durch die Kurven bis nach Hause fahren
 
   Bewusst normale Skripte statt ES-Module, damit das Spiel auch per Doppelklick
   ohne Server startet. Die Reihenfolge ist wichtig: Konfiguration → Kern → Grafik → Szenen → Start.
@@ -113,7 +114,7 @@
   // Versionsnummer für den Browser-Zwischenspeicher: Nach jeder Änderung, die online
   // gehen soll, hochzählen – dann laden alle Besucher die neuen Skripte, sonst kommen
   // sie aus dem Zwischenspeicher. Lokal (localhost / Doppelklick) wird immer frisch geladen.
-  const GAME_VERSION = '2.2.0';
+  const GAME_VERSION = '2.3.0';
 
   const GAME_SCRIPTS = [
     'js/config.js',
@@ -140,6 +141,7 @@
     'js/scenes/lecture-scene.js',
     'js/scenes/sneak-scene.js',
     'js/scenes/platform-scene.js',
+    'js/scenes/kart-scene.js',
     'js/scenes/win-scene.js',
     'js/scenes/game-over-scene.js',
 

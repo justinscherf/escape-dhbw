@@ -2,7 +2,7 @@
 
 // =====================================================================
 //  BASIS-SZENEN
-//  LevelScene:  gemeinsamer Rahmen der drei spielbaren Schritte
+//  LevelScene:  gemeinsamer Rahmen der vier spielbaren Schritte
 //               (Eingabe, Zeitmessung, HUD, Erwischt-Ablauf, Levelende)
 //  ScreenScene: gemeinsamer Rahmen für Menü und Zwischenbildschirme
 // =====================================================================

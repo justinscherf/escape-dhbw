@@ -17,10 +17,10 @@ class WinScene extends ScreenScene {
     this.add.text(GAME_WIDTH / 2, 110, 'Du bist der DHBW entkommen. Die Vorlesungsfolien liest du … irgendwann.',
       textStyle(17, CSS.white, FONT_BODY)).setOrigin(0.5);
 
-    const [lecture = 0, hall = 0, stairs = 0] = GameState.stageSplits();
+    const [lecture = 0, hall = 0, stairs = 0, kart = 0] = GameState.stageSplits();
     const lines = [
       `Zeit gesamt: ${formatTime(GameState.elapsedMs)}${records.isNewBestTime ? '   ★ NEUE BESTZEIT' : ''}`,
-      `  Vorlesung ${formatTime(lecture)} · Hörsaal ${formatTime(hall)} · Treppenhaus ${formatTime(stairs)}`,
+      `Vorlesung ${formatTime(lecture)} · Hörsaal ${formatTime(hall)} · Treppenhaus ${formatTime(stairs)} · Heimfahrt ${formatTime(kart)}`,
       `Punkte im Spiel: ${GameState.score}   (ECTS gesammelt: ${GameState.ects})`,
       `Zeitbonus: +${result.timeBonus}`,
       `Lebensbonus: ${GameState.lives} × ${SCORING.lifeBonus} = +${result.lifeBonus}`,

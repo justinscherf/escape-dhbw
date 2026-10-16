@@ -54,13 +54,13 @@ class GameOverScene extends ScreenScene {
       this.add.text(left, top + 78, 'Bescheid über die Exmatrikulation', serif(23, '#1a1a1a', { fontStyle: 'bold' })),
       this.add.text(left, top + 120, 'Sehr geehrte/r Studierende/r,', serif(14)),
       this.add.text(left, top + 144,
-        'hiermit werden Sie mit sofortiger Wirkung exmatrikuliert. Sie wurden während der Vorlesung zu oft dabei erwischt, sich ihr zu entziehen.',
+        'hiermit werden Sie mit sofortiger Wirkung exmatrikuliert. Ihr Versuch, der DHBW zu entkommen und sicher nach Hause zu gelangen, ist leider gescheitert.',
         serif(14, '#1a1a1a', { wordWrap: { width: width - 68 } })),
       this.add.text(left, top + 196, 'Begründung:', serif(14, '#1a1a1a', { fontStyle: 'bold' })),
       this.add.text(left + 96, top + 196, this.reason, serif(14, '#1a1a1a', { fontStyle: 'italic', wordWrap: { width: width - 164 } })),
       this.add.text(left, top + 236,
         `Erreichte Punkte: ${GameState.score}   ·   Studiendauer: ${formatTime(GameState.elapsedMs)}\n` +
-        `Geschaffte Schritte: ${GameState.stageTimes.length}/3   ·   Erwischt worden: ${GameState.catches}×   ·   ECTS: ${GameState.ects}`,
+        `Geschaffte Schritte: ${GameState.stageTimes.length}/${Object.keys(STAGES).length}   ·   Erwischt worden: ${GameState.catches}×   ·   ECTS: ${GameState.ects}`,
         serif(13, '#333333', { lineSpacing: 4 })),
       this.add.text(left, top + 290,
         'Rechtsbehelfsbelehrung: Gegen diesen Bescheid kann innerhalb eines Monats Widerspruch eingelegt werden – ' +

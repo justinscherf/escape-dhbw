@@ -1,15 +1,15 @@
 'use strict';
 
 // =====================================================================
-//  LEVEL-DATEN: Texte, Steuerungshinweise, Inhalte und Layouts der drei Schritte
+//  LEVEL-DATEN: Texte, Steuerungshinweise, Inhalte und Layouts der vier Schritte
 // =====================================================================
 
 const STAGES = Object.freeze({
   1: {
     sceneKey: SCENES.lecture,
     music: 'upbeat',
-    title: 'Schritt 1/3 – Die Vorlesung',
-    hudLabel: 'Schritt 1/3 · Vorlesung',
+    title: 'Schritt 1/4 – Die Vorlesung',
+    hudLabel: 'Schritt 1/4 · Vorlesung',
     text: 'Der Dozent schreibt an die Tafel. Sobald er dir den Rücken zudreht: Handy raus und scrollen, ' +
       'bis dein Dopamin-Meter voll ist. Dreht er sich um – Handy WEG! Werbung musst du erst abwarten, ' +
       'bevor du sie überspringen kannst. Ab der Hälfte wird er misstrauisch …',
@@ -28,8 +28,8 @@ const STAGES = Object.freeze({
   2: {
     sceneKey: SCENES.sneak,
     music: 'sneaky',
-    title: 'Schritt 2/3 – Raus aus dem Hörsaal',
-    hudLabel: 'Schritt 2/3 · Raus aus dem Hörsaal',
+    title: 'Schritt 2/4 – Raus aus dem Hörsaal',
+    hudLabel: 'Schritt 2/4 · Raus aus dem Hörsaal',
     text: 'Sammle alle ECTS – erst dann geht die Tür unten links auf. Der Dozent läuft durch die Gänge und ' +
       'kommt sofort nachsehen, wenn es raschelt! Herzen füllen verlorene Leben auf, mit dem DHBW-Schirm ' +
       'schlägst du später Papierflieger weg. Kommilitonen verdecken dich immer, Tische nur geduckt.',
@@ -48,8 +48,8 @@ const STAGES = Object.freeze({
   3: {
     sceneKey: SCENES.platform,
     music: 'upbeat',
-    title: 'Schritt 3/3 – Das Treppenhaus',
-    hudLabel: 'Schritt 3/3 · Treppenhaus',
+    title: 'Schritt 3/4 – Das Treppenhaus',
+    hudLabel: 'Schritt 3/4 · Treppenhaus',
     text: 'Vom 3. OG runter bis zum Ausgang im EG. Weich Dozenten, Putzwagen und Papierfliegern aus, ' +
       'sammle ECTS und Herzen. Kaffee gibt dir kurz einen Doppelsprung!',
     touchLayout: 'platform',
@@ -63,6 +63,26 @@ const STAGES = Object.freeze({
     ],
     hint: null,
     touchHint: null
+  },
+  4: {
+    sceneKey: SCENES.kart,
+    music: 'upbeat',
+    title: 'Schritt 4/4 – Ab nach Hause!',
+    hudLabel: 'Schritt 4/4 · Heimfahrt',
+    text: 'Die DHBW liegt hinter dir – jetzt mit dem Kart nach Hause! Nimm die Kurven, weich Autos und ' +
+      'Pylonen aus und bleib auf der Straße. Kaffee gibt Turbo, Herzen retten Leben. ' +
+      'Erst hinter der Ziellinie vor deinem Zuhause hast du es geschafft!',
+    touchLayout: 'kart',
+    controls: [
+      'Lenken: ← → / A D · Gas: ↑ / W / LEERTASTE · Bremsen: ↓ / S',
+      'Controller: Stick / Steuerkreuz lenken · A / B / X / Y = Gas · unten = Bremse'
+    ],
+    touchControls: [
+      'Lenken: ◀ ▶ links · GAS rechts gedrückt halten',
+      'BREMSEN rechts · Kaffee einsammeln = Turbo'
+    ],
+    hint: '↑ / W / LEERTASTE halten = Gas · ← → lenken · ↓ bremsen · Kaffee = Turbo',
+    touchHint: 'GAS halten · ◀ ▶ lenken · BREMSEN zum Abbremsen · Kaffee = Turbo'
   }
 });
 
@@ -261,4 +281,35 @@ const LEVEL3 = Object.freeze({
     [6550, 1400], [6650, 1380], [7150, 1400], [7250, 1380], [7350, 1400]
   ],
   door: { x: 7600, y: 1460 }
+});
+
+// ---------- Schritt 4: Eine Strecke von der DHBW bis zur Haustür ----------
+// x ist relativ zur Straßenmitte: -1 = linker Rand, +1 = rechter Rand.
+// Kurven laufen weich ein und aus. Die letzte Gerade führt durch die Ziellinie.
+const LEVEL4 = Object.freeze({
+  length: 2600,
+  sections: [
+    { end: 320, curve: 0, label: 'DHBW CAMPUS' },
+    { end: 660, curve: 0.85, label: 'STADTRAND' },
+    { end: 1010, curve: -1, label: 'DURCH DEN WALD' },
+    { end: 1320, curve: 0.65, label: 'SOFA IN SICHT?' },
+    { end: 1650, curve: -0.85, label: 'FAST FEIERABEND' },
+    { end: 1990, curve: 0.9, label: 'RICHTUNG ZUHAUSE' },
+    { end: 2290, curve: -0.5, label: 'DEIN VIERTEL' },
+    { end: 2600, curve: 0, label: 'ZUHAUSE!' }
+  ],
+  objects: [
+    { z: 150, x: -0.5, kind: 'ects' }, { z: 190, x: -0.5, kind: 'ects' },
+    { z: 280, x: 0.5, kind: 'cone' }, { z: 400, x: -0.45, kind: 'coffee' },
+    { z: 510, x: -0.55, kind: 'car' }, { z: 630, x: 0.45, kind: 'ects' },
+    { z: 670, x: 0.45, kind: 'ects' }, { z: 790, x: 0.55, kind: 'cone' },
+    { z: 900, x: -0.5, kind: 'heart' }, { z: 1030, x: -0.45, kind: 'car' },
+    { z: 1160, x: 0.5, kind: 'coffee' }, { z: 1300, x: 0.55, kind: 'cone' },
+    { z: 1390, x: -0.5, kind: 'ects' }, { z: 1430, x: -0.5, kind: 'ects' },
+    { z: 1550, x: -0.55, kind: 'cone' }, { z: 1680, x: 0.45, kind: 'car' },
+    { z: 1820, x: -0.5, kind: 'coffee' }, { z: 1960, x: 0.5, kind: 'heart' },
+    { z: 2100, x: -0.5, kind: 'car' }, { z: 2210, x: 0.5, kind: 'cone' },
+    { z: 2330, x: 0, kind: 'ects' }, { z: 2370, x: 0, kind: 'ects' },
+    { z: 2410, x: 0, kind: 'coffee' }
+  ]
 });

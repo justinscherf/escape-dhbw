@@ -29,6 +29,7 @@ const SCENES = Object.freeze({
   lecture: 'LectureScene',
   sneak: 'SneakScene',
   platform: 'PlatformScene',
+  kart: 'KartScene',
   win: 'WinScene',
   gameOver: 'GameOverScene'
 });
@@ -261,6 +262,29 @@ const PLATFORM = Object.freeze({
   planeIntervalMs: 2300,
   planeSpeed: 220,
   fallMargin: 40
+});
+
+// ---------- Schritt 4: Heimfahrt im Kart ----------
+const KART = Object.freeze({
+  maxSpeed: 44,             // Streckenmeter pro Sekunde; etwa eine Minute Heimfahrt
+  boostSpeed: 64,
+  acceleration: 24,
+  coastDeceleration: 12,
+  brakeDeceleration: 48,
+  offroadSpeed: 14,
+  offroadDeceleration: 40,
+  steerSpeed: 1.8,          // Straßenbreiten pro Sekunde
+  centrifugal: 0.6,
+  roadLimit: 0.9,
+  playerLimit: 2,
+  collisionRadius: 0.18,
+  invulnMs: 2000,
+  boostMs: 2400,
+  countdownMs: 3000,
+  cameraDepth: 16,
+  cameraOffset: 19,
+  viewDistance: 650,
+  rasterHeight: 180
 });
 
 // ---------- Punkte ----------
