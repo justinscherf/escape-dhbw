@@ -11,7 +11,7 @@
 
 // =====================================================================
 
-const INPUT_ACTIONS = Object.freeze(['left', 'right', 'up', 'down', 'action', 'menu']);
+const INPUT_ACTIONS = Object.freeze(['left', 'right', 'up', 'down', 'action', 'swing', 'menu']);
 
 class GameInput {
   constructor(scene) {
@@ -69,7 +69,10 @@ class GameInput {
 
   // ---------- Aktionstaste des Controllers ----------
   static buttonFor(action) {
-    return action === 'action' ? GameInput.actionButton : CONTROLS.gamepad[action];
+    if (action === 'action') return GameInput.actionButton;
+    // Schwingen: Y – außer Y wurde im Menü als Aktionstaste gelernt, dann X
+    if (action === 'swing' && CONTROLS.gamepad.swing === GameInput.actionButton) return 3;
+    return CONTROLS.gamepad[action];
   }
 
   static setActionButton(index) {

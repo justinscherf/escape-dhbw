@@ -25,8 +25,8 @@ const STAGES = Object.freeze({
     title: 'Schritt 2/3 – Raus aus dem Hörsaal',
     hudLabel: 'Schritt 2/3 · Raus aus dem Hörsaal',
     text: 'Sammle alle ECTS – erst dann geht die Tür unten links auf. Der Dozent läuft durch die Gänge und ' +
-      'kommt sofort nachsehen, wenn es raschelt! Herzen füllen verlorene Leben auf. Kommilitonen verdecken ' +
-      'dich immer, Tische nur geduckt.',
+      'kommt sofort nachsehen, wenn es raschelt! Herzen füllen verlorene Leben auf, mit dem DHBW-Schirm ' +
+      'schlägst du später Papierflieger weg. Kommilitonen verdecken dich immer, Tische nur geduckt.',
     controls: [
       'Bewegen:  Pfeiltasten   ·   Controller: Stick / Steuerkreuz',
       'Ducken & schleichen (halten):  LEERTASTE   ·   Controller: A'
@@ -138,6 +138,7 @@ const SNEAK_LAYOUT = Object.freeze({
     { x: 480, y: 128 },   // direkt vor der Tafel – nur wenn er wegschaut
     { x: 845, y: 482 }    // hinten rechts in der Ecke
   ],
+  umbrella: { x: 720, y: 122 },   // DHBW-Schirm: vorne rechts, direkt am Laufweg des Dozenten
   lecturerY: 105,
   lecturerMinX: 200,
   lecturerMaxX: 760,

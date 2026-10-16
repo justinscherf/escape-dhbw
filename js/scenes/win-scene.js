@@ -24,7 +24,7 @@ class WinScene extends ScreenScene {
       `Punkte im Spiel: ${GameState.score}   (ECTS gesammelt: ${GameState.ects})`,
       `Zeitbonus: +${result.timeBonus}`,
       `Lebensbonus: ${GameState.lives} × ${SCORING.lifeBonus} = +${result.lifeBonus}`,
-      `Erwischt worden: ${GameState.catches}×`
+      `Erwischt worden: ${GameState.catches}×${GameState.hasUmbrella ? `   ·   Papierflieger abgewehrt: ${GameState.planesDeflected}` : ''}`
     ];
     lines.forEach((line, i) => {
       this.add.text(GAME_WIDTH / 2, 160 + i * 28, line, textStyle(17, i === 0 ? CSS.accent : CSS.white, FONT_BODY)).setOrigin(0.5);

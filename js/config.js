@@ -97,10 +97,10 @@ const STORAGE_KEYS = Object.freeze({
 // ---------- Steuerung: pro Aktion genau eine Taste ----------
 // Tastatur: Pfeiltasten + LEERTASTE · Controller: Stick/Steuerkreuz + A · ESC bzw. + = Menü
 const CONTROLS = Object.freeze({
-  keyboard: { left: 'LEFT', right: 'RIGHT', up: 'UP', down: 'DOWN', action: 'SPACE', menu: 'ESC' },
+  keyboard: { left: 'LEFT', right: 'RIGHT', up: 'UP', down: 'DOWN', action: 'SPACE', swing: 'X', menu: 'ESC' },
   // Controller im "standard"-Mapping – in Chrome ist beim Switch Pro Controller A = 1 und + = 9.
   // Die Aktionstaste ist nur der Startwert: Das Menü merkt sich die Taste, mit der gestartet wird.
-  gamepad: { left: 14, right: 15, up: 12, down: 13, action: 1, menu: 9 },
+  gamepad: { left: 14, right: 15, up: 12, down: 13, action: 1, swing: 2, menu: 9 }, // swing: Y beim Switch Pro
   faceButtons: [0, 1, 2, 3],
   stickDeadzone: 0.25,
   downThreshold: 0.5       // ab diesem Ausschlag gilt "nach unten" (Handy in Schritt 1)
@@ -236,6 +236,20 @@ const PLATFORM = Object.freeze({
 });
 
 // ---------- Punkte ----------
+// DHBW-Regenschirm: aus Schritt 2 mitgenommen, wehrt in Schritt 3 Papierflieger ab
+// Schwingen mit X (Tastatur) bzw. Y (Controller); nur der Schwung wehrt Flieger ab
+const UMBRELLA = Object.freeze({
+  swingMs: 220,              // Dauer des Schwungs (in dieser Zeit wehrt er ab)
+  cooldownMs: 550,           // Pause nach jedem Schwung – kein Dauer-Spammen
+  reach: 46,                 // Reichweite vor dem Spieler in Spielpunkten
+  restAngle: -160,           // zugeklappt an der Seite, Spitze schräg nach hinten unten (wie ein Schwert)
+  swingFrom: -40,            // Ausholen nach oben/hinten …
+  swingTo: 125,              // … und nach vorne unten durchziehen
+  deflectScore: 25,
+  stunMs: 2500,              // so lange ist ein getroffener Dozent betäubt (und harmlos)
+  stunScore: 50
+});
+
 const SCORING = Object.freeze({
   stageClear: 500,
   timeBonusBase: 6000,

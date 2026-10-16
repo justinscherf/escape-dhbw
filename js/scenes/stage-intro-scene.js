@@ -31,6 +31,11 @@ class StageIntroScene extends ScreenScene {
       `Leben: ${'♥'.repeat(GameState.lives)}     Score: ${GameState.score}     Zeit: ${formatTime(GameState.elapsedMs)}`,
       textStyle(16, CSS.gray, FONT_BODY)).setOrigin(0.5);
 
+    if (GameState.hasUmbrella && this.stage.sceneKey === SCENES.platform) {
+      this.add.text(GAME_WIDTH / 2, 390, '☂ DHBW-Schirm schwingen:  X   ·   Controller: Y  –  wehrt Papierflieger ab und betäubt Dozenten',
+        textStyle(15, CSS.accent, FONT_BODY)).setOrigin(0.5);
+    }
+
     addBlinkingText(this, GAME_WIDTH / 2, 420, 'Bereit? LEERTASTE / A', textStyle(22, CSS.success));
   }
 

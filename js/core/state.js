@@ -11,6 +11,8 @@ const GameState = {
   catches: 0,
   ects: 0,
   stageTimes: [], // kumulierte Zeit am Ende jedes geschafften Schritts
+  hasUmbrella: false,    // DHBW-Schirm aus Schritt 2 eingesammelt
+  planesDeflected: 0,
 
   reset() {
     this.lives = START_LIVES;
@@ -19,6 +21,8 @@ const GameState = {
     this.catches = 0;
     this.ects = 0;
     this.stageTimes = [];
+    this.hasUmbrella = false;
+    this.planesDeflected = 0;
   },
 
   addScore(points) {

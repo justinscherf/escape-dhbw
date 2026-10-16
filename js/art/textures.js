@@ -23,7 +23,9 @@ const TEX = Object.freeze({
   door: 'door',
   entrance: 'entrance',
   backpack: 'backpack_top',
-  wetSign: 'wetsign'
+  wetSign: 'wetsign',
+  umbrella: 'umbrella',
+  umbrellaClosed: 'umbrella_closed'
 });
 
 const ANIM = Object.freeze({
@@ -209,6 +211,41 @@ function createAllTextures(scene) {
   });
 
   // "Vorsicht nass"-Schild
+  // DHBW-Regenschirm aufgespannt: rot-weiße Segmente, Griff nach unten
+  bakeTexture(scene, TEX.umbrella, 44, 40, (g) => {
+    const segments = 6;
+    for (let i = 0; i < segments; i++) {
+      const a0 = Math.PI + (i / segments) * Math.PI;
+      const a1 = Math.PI + ((i + 1) / segments) * Math.PI;
+      g.fillStyle(i % 2 === 0 ? COLORS.danger : COLORS.white, 1);
+      g.fillTriangle(22, 18, 22 + Math.cos(a0) * 21, 18 + Math.sin(a0) * 16, 22 + Math.cos(a1) * 21, 18 + Math.sin(a1) * 16);
+    }
+    g.lineStyle(2, 0x7a1010, 1);
+    g.lineBetween(1, 18, 43, 18);
+    g.fillStyle(COLORS.charcoal, 1);
+    g.fillRect(21, 0, 2, 4);           // Spitze
+    g.fillRect(21, 18, 2, 17);         // Stock
+    g.lineStyle(2, COLORS.charcoal, 1);
+    g.beginPath();
+    g.arc(18, 35, 4, 0, Math.PI, false); // Griff
+    g.strokePath();
+  });
+
+  // zugeklappter Schirm (während der Abklingzeit)
+  bakeTexture(scene, TEX.umbrellaClosed, 44, 40, (g) => {
+    g.fillStyle(COLORS.danger, 1);
+    g.fillTriangle(22, 2, 17, 26, 27, 26);
+    g.fillStyle(COLORS.white, 1);
+    g.fillTriangle(22, 6, 20, 24, 24, 24);
+    g.fillStyle(COLORS.charcoal, 1);
+    g.fillRect(21, 0, 2, 4);
+    g.fillRect(21, 26, 2, 9);
+    g.lineStyle(2, COLORS.charcoal, 1);
+    g.beginPath();
+    g.arc(18, 35, 4, 0, Math.PI, false);
+    g.strokePath();
+  });
+
   bakeTexture(scene, TEX.wetSign, 30, 40, (g) => {
     g.fillStyle(COLORS.accent, 1);
     g.fillTriangle(15, 0, 30, 40, 0, 40);

@@ -38,6 +38,7 @@ class PlatformScene extends LevelScene {
     this.createPlayer();
     this.createEnemies();
     this.createPickups();
+    this.createUmbrella();
     this.createDoor();
     this.setupCollisions();
 
@@ -55,12 +56,13 @@ class PlatformScene extends LevelScene {
     this.coffeeMs -= dt;
 
     this.updatePlayer(dt);
-    this.updateEnemies();
+    this.updateEnemies(dt);
     this.updatePlanes();
+    this.updateUmbrella(dt);
     this.followCamera(dt);
 
     const coffeeInfo = this.coffeeMs > 0 ? `   ☕ ${(this.coffeeMs / 1000).toFixed(1)}s` : '';
-    this.hud.setExtra(`ECTS ${GameState.ects}${coffeeInfo}`);
+    this.hud.setExtra(`ECTS ${GameState.ects}${coffeeInfo}${this.umbrellaInfo()}`);
     this.endFrame();
   }
 
@@ -360,12 +362,14 @@ class PlatformScene extends LevelScene {
     this.enemies = this.physics.add.group({ allowGravity: false, immovable: true });
     const addPatroller = (data, texture, offsetY, quote) => {
       const enemy = hiRes(this.enemies.create(data.x, data.y - offsetY, texture)).setDepth(9);
-      enemy.setData({ minX: data.minX, maxX: data.maxX, speed: data.speed, quote });
+      enemy.setData({ minX: data.minX, maxX: data.maxX, speed: data.speed, quote, stunnable: false, stunMs: 0 });
       enemy.setVelocityX(data.speed);
       return enemy;
     };
     LEVEL3.lecturers.forEach((data) => {
-      addPatroller(data, TEX.lecturerWalk[0], 27, 'Wohin so eilig?!').anims.play(ANIM.lecturerWalk);
+      const lecturer = addPatroller(data, TEX.lecturerWalk[0], 27, 'Wohin so eilig?!');
+      lecturer.anims.play(ANIM.lecturerWalk);
+      lecturer.setData('stunnable', true); // nur Dozenten lassen sich mit dem Schirm betäuben
     });
     LEVEL3.carts.forEach((data) => addPatroller(data, TEX.cart, 22, 'Hier wird geputzt!'));
 
@@ -404,7 +408,10 @@ class PlatformScene extends LevelScene {
   setupCollisions() {
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(this.player, this.obstacles);
-    this.physics.add.overlap(this.player, this.enemies, (player, enemy) => this.hurtPlayer(enemy.getData('quote')));
+    this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
+      if (enemy.getData('stunMs') > 0) return; // betäubte Dozenten sind harmlos
+      this.hurtPlayer(enemy.getData('quote'));
+    });
     this.physics.add.overlap(this.player, this.planes, (player, plane) => {
       plane.destroy();
       this.hurtPlayer('Papierflieger im Gesicht!');
@@ -525,8 +532,12 @@ class PlatformScene extends LevelScene {
   }
 
   // ---------- Gegner & Hindernisse ----------
-  updateEnemies() {
+  updateEnemies(dt) {
     this.enemies.getChildren().forEach((enemy) => {
+      if (enemy.getData('stunMs') > 0) {
+        this.updateStun(enemy, dt);
+        return;
+      }
       const { minX, maxX, speed } = enemy.data.values;
       if (enemy.x <= minX) enemy.setVelocityX(speed);
       else if (enemy.x >= maxX) enemy.setVelocityX(-speed);
@@ -549,6 +560,142 @@ class PlatformScene extends LevelScene {
       plane.y = plane.getData('baseY') + Math.sin(this.time.now * 0.005 + plane.getData('phase')) * 18;
       if (plane.x < leftEdge) plane.destroy();
     });
+  }
+
+  // ---------- DHBW-Schirm ----------
+  // Hängt zugeklappt wie ein Schwert an der Seite; mit X / Y wird er vor dem Körper
+  // geschwungen. Nur während des Schwungs prallen Papierflieger ab, danach kurze Pause.
+  createUmbrella() {
+    this.umbrella = null;
+    this.swingMs = 0;          // > 0 = Schwung läuft
+    this.swingCooldownMs = 0;
+    if (!GameState.hasUmbrella) return;
+    this.umbrella = hiRes(this.add.image(this.player.x, this.player.y, TEX.umbrellaClosed), 1.25)
+      .setOrigin(0.5, 0.88).setDepth(11); // Drehpunkt am Griff
+    this.swoosh = this.add.graphics().setDepth(11);
+  }
+
+  facing() {
+    return this.player.flipX ? -1 : 1;
+  }
+
+  // Griff in der Hand des Spielers
+  umbrellaGrip() {
+    return { x: this.player.x + this.facing() * 7, y: this.player.y + 2 };
+  }
+
+  startSwing() {
+    this.swingMs = UMBRELLA.swingMs;
+    this.swingCooldownMs = UMBRELLA.swingMs + UMBRELLA.cooldownMs;
+    SFX.swing();
+  }
+
+  updateUmbrella(dt) {
+    if (!this.umbrella) return;
+    this.swingMs -= dt;
+    this.swingCooldownMs -= dt;
+    if (this.inputs.wasPressed('swing') && this.swingCooldownMs <= 0) this.startSwing();
+
+    const dir = this.facing();
+    const grip = this.umbrellaGrip();
+    const swinging = this.swingMs > 0;
+    const progress = swinging ? Phaser.Math.Easing.Cubic.Out(1 - this.swingMs / UMBRELLA.swingMs) : 1;
+    const angle = swinging ? Phaser.Math.Linear(UMBRELLA.swingFrom, UMBRELLA.swingTo, progress) : UMBRELLA.restAngle;
+    // In Ruhe gespiegelt getragen (Spitze nach hinten), beim Schwung nach vorne
+    this.umbrella.setPosition(grip.x, grip.y).setAngle(angle * dir).setFlipX(swinging ? dir < 0 : dir > 0);
+    this.umbrella.setAlpha(!swinging && this.swingCooldownMs > 0 ? 0.6 : 1);
+
+    this.swoosh.clear();
+    if (!swinging) return;
+    this.drawSwoosh(grip, dir, progress);
+    this.deflectPlanesInReach(grip, dir);
+    this.stunLecturersInReach(grip, dir);
+  }
+
+  // Weißer Schweif hinter der Schirmspitze
+  drawSwoosh(grip, dir, progress) {
+    const toRadians = (deg) => Phaser.Math.DegToRad(deg - 90); // 0° = Spitze nach oben
+    const from = toRadians(UMBRELLA.swingFrom);
+    const to = toRadians(Phaser.Math.Linear(UMBRELLA.swingFrom, UMBRELLA.swingTo, progress));
+    const startAngle = dir > 0 ? from : Math.PI - from;
+    const endAngle = dir > 0 ? to : Math.PI - to;
+    this.swoosh.lineStyle(10, 0xffffff, 0.45 * (1 - progress * 0.5));
+    this.swoosh.beginPath();
+    this.swoosh.arc(grip.x, grip.y, 30, startAngle, endAngle, dir < 0);
+    this.swoosh.strokePath();
+  }
+
+  deflectPlanesInReach(grip, dir) {
+    const hitX = grip.x + dir * UMBRELLA.reach * 0.6;
+    this.planes.getChildren().slice().forEach((plane) => {
+      if (!plane.body || !plane.body.enable) return;
+      if (Phaser.Math.Distance.Between(hitX, grip.y - 8, plane.x, plane.y) < UMBRELLA.reach) this.deflectPlane(plane);
+    });
+  }
+
+  deflectPlane(plane) {
+    plane.body.enable = false; // darf nicht nochmal treffen
+    const dir = this.facing();
+    this.tweens.add({
+      targets: plane,
+      x: plane.x + dir * 160,
+      y: plane.y - 170,
+      angle: 540 * dir,
+      alpha: 0,
+      duration: 650,
+      ease: 'Cubic.easeOut',
+      onComplete: () => plane.destroy()
+    });
+    GameState.planesDeflected++;
+    GameState.addScore(UMBRELLA.deflectScore);
+    SFX.umbrellaBlock();
+    floatText(this, plane.x, plane.y - 30, `Abgewehrt! +${UMBRELLA.deflectScore}`, CSS.accent, 16);
+  }
+
+  // ---------- Dozenten betäuben ----------
+  stunLecturersInReach(grip, dir) {
+    const hitX = grip.x + dir * UMBRELLA.reach * 0.6;
+    this.enemies.getChildren().forEach((enemy) => {
+      if (!enemy.getData('stunnable') || enemy.getData('stunMs') > 0) return;
+      if (Phaser.Math.Distance.Between(hitX, grip.y - 8, enemy.x, enemy.y) < UMBRELLA.reach) this.stunLecturer(enemy);
+    });
+  }
+
+  stunLecturer(enemy) {
+    enemy.setData('stunMs', UMBRELLA.stunMs);
+    enemy.setData('resumeSpeed', enemy.body.velocity.x || enemy.getData('speed'));
+    enemy.setVelocityX(0);
+    enemy.anims.pause();
+    enemy.setTint(0xbfbfbf);
+    // Drei Sterne kreisen über dem Kopf
+    enemy.setData('stars', [0, 1, 2].map(() =>
+      this.add.text(enemy.x, enemy.y - 34, '★', textStyle(14, CSS.accent)).setOrigin(0.5).setDepth(12)));
+    GameState.addScore(UMBRELLA.stunScore);
+    SFX.bonk();
+    this.cameras.main.shake(80, 0.004);
+    floatText(this, enemy.x, enemy.y - 60, `Bonk! +${UMBRELLA.stunScore}`, CSS.accent, 16);
+  }
+
+  updateStun(enemy, dt) {
+    const stunMs = enemy.getData('stunMs') - dt;
+    enemy.setData('stunMs', stunMs);
+    const stars = enemy.getData('stars');
+    const spin = this.time.now * 0.008;
+    stars.forEach((star, i) => {
+      const angle = spin + (i * Math.PI * 2) / stars.length;
+      star.setPosition(enemy.x + Math.cos(angle) * 14, enemy.y - 34 + Math.sin(angle) * 4);
+      star.setAlpha(stunMs < 500 ? 0.4 + 0.6 * Math.abs(Math.sin(spin * 3)) : 1); // kurz vor Schluss blinken
+    });
+    if (stunMs > 0) return;
+    stars.forEach((star) => star.destroy());
+    enemy.clearTint();
+    enemy.anims.resume();
+    enemy.setVelocityX(enemy.getData('resumeSpeed'));
+  }
+
+  umbrellaInfo() {
+    if (!this.umbrella) return '';
+    return this.swingCooldownMs > 0 ? '   ☂ …' : '   ☂ X / Y';
   }
 
   // ---------- Pickups ----------

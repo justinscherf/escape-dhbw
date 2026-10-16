@@ -40,6 +40,7 @@ class SneakScene extends LevelScene {
     this.buildBackpacks();
     this.buildEcts();
     this.buildHearts();
+    this.buildUmbrella();
     this.buildDoor();
     this.createLecturer();
     this.createPlayer();
@@ -68,6 +69,7 @@ class SneakScene extends LevelScene {
     if (this.finished) return;
     this.checkEctsPickup();
     this.checkHeartPickup();
+    this.checkUmbrellaPickup();
     this.checkNoise(dt, sneaking, moving);
     const visible = this.isPlayerVisible(sneaking);
     this.drawCone(visible, sneaking);
@@ -168,6 +170,16 @@ class SneakScene extends LevelScene {
     });
   }
 
+  // Optionaler DHBW-Schirm – schützt in Schritt 3 vor Papierfliegern
+  buildUmbrella() {
+    this.umbrellaPickup = null;
+    if (GameState.hasUmbrella) return;
+    const { x, y } = SNEAK_LAYOUT.umbrella;
+    const image = hiRes(this.add.image(x, y, TEX.umbrella), 0.8).setDepth(6);
+    this.tweens.add({ targets: image, angle: { from: -12, to: 12 }, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.umbrellaPickup = { x, y, image };
+  }
+
   buildDoor() {
     const { door, wall } = SNEAK_LAYOUT;
     const g = this.add.graphics().setDepth(1);
@@ -189,7 +201,7 @@ class SneakScene extends LevelScene {
     const missing = this.ectsRequired - this.ectsCollected;
     this.doorLabel.setText(this.isDoorOpen() ? 'AUSGANG ↓' : `🔒 noch ${missing} ECTS`);
     this.doorLabel.setColor(this.isDoorOpen() ? CSS.success : CSS.danger);
-    this.hud.setExtra(`ECTS ${this.ectsCollected}/${this.ectsRequired}`);
+    this.hud.setExtra(`ECTS ${this.ectsCollected}/${this.ectsRequired}${GameState.hasUmbrella ? '   ☂' : ''}`);
   }
 
   createLecturer() {
@@ -259,6 +271,18 @@ class SneakScene extends LevelScene {
       heart.image.destroy();
       this.collectHeart(heart.x, heart.y);
     });
+  }
+
+  checkUmbrellaPickup() {
+    const pickup = this.umbrellaPickup;
+    if (!pickup || Phaser.Math.Distance.Between(pickup.x, pickup.y, this.player.x, this.player.y) > 24) return;
+    this.umbrellaPickup = null;
+    this.tweens.killTweensOf(pickup.image);
+    pickup.image.destroy();
+    GameState.hasUmbrella = true;
+    SFX.powerup();
+    floatText(this, pickup.x, pickup.y - 20, 'DHBW-Schirm! Schützt vor Papierfliegern ☂', CSS.accent, 16);
+    this.updateEctsDisplay();
   }
 
   openDoor() {

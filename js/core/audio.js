@@ -135,6 +135,9 @@ const SFX = {
   },
 
   click() { this.tone(660, 0.06, 'square', 0.04); },
+  umbrellaBlock() { this.tone(180, 0.08, 'triangle', 0.08, 90); this.tone(900, 0.1, 'square', 0.04, 1800, 0.03); },
+  bonk() { this.tone(260, 0.12, 'square', 0.06, 120); this.tone(1400, 0.08, 'triangle', 0.04, 2000, 0.08); },
+  swing() { this.noise(0.12, 0.05); this.tone(500, 0.12, 'triangle', 0.03, 180); },
   stamp() { this.tone(90, 0.25, 'sine', 0.2, 40); this.noise(0.12, 0.12); },
   denied() { this.tone(160, 0.12, 'square', 0.04); },
   ad() { this.melody([784, 988, 1175, 1568], 0.12, 'triangle', 0.05, 0.09); },
