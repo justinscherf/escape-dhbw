@@ -12,6 +12,9 @@ window.addEventListener('gamepaddisconnected', (event) => {
   console.info(`Controller getrennt: #${event.gamepad.index} ${event.gamepad.id}`);
 });
 
+// Bildschirm-Buttons für Handy/Tablet vorbereiten
+TouchControls.init();
+
 // Fehler mitschreiben, damit die Ton-Diagnose im Menü sie anzeigen kann
 window.addEventListener('error', (event) => { SFX.lastError = event.message; });
 

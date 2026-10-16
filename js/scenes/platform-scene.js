@@ -456,7 +456,7 @@ class PlatformScene extends LevelScene {
   // Springen mit Coyote-Time (kurz nach der Kante) und Jump-Buffer (kurz vor der Landung)
   jump(dt, onGround) {
     const body = this.player.body;
-    if (this.inputs.wasPressed('action')) this.jumpBufferMs = PLATFORM.jumpBufferMs;
+    if (this.inputs.wasPressed('jump')) this.jumpBufferMs = PLATFORM.jumpBufferMs;
     const wantsJump = this.jumpBufferMs > 0;
 
     if (wantsJump && this.coyoteMs > 0 && !this.hasJumped) {
@@ -473,7 +473,7 @@ class PlatformScene extends LevelScene {
     }
 
     // Früh loslassen = kleiner Sprung
-    if (!this.inputs.isHeld('action') && body.velocity.y < 0) {
+    if (!this.inputs.isHeld('jump') && body.velocity.y < 0) {
       body.velocity.y += PLATFORM.jumpCutGravity * dt / 1000;
     }
   }
@@ -695,7 +695,7 @@ class PlatformScene extends LevelScene {
 
   umbrellaInfo() {
     if (!this.umbrella) return '';
-    return this.swingCooldownMs > 0 ? '   ☂ …' : '   ☂ X / Y';
+    return this.swingCooldownMs > 0 ? '   ☂ …' : '   ☂ bereit';
   }
 
   // ---------- Pickups ----------

@@ -35,7 +35,7 @@ class WinScene extends ScreenScene {
     if (records.isNewHighscore) {
       this.add.text(GAME_WIDTH / 2, 385, '★ NEUER HIGHSCORE ★', textStyle(22, CSS.dopamine)).setOrigin(0.5);
     }
-    addBlinkingText(this, GAME_WIDTH / 2, 515, 'LEERTASTE / A  →  Menü', textStyle(18, CSS.white));
+    addBlinkingText(this, GAME_WIDTH / 2, 515, TouchControls.enabled ? 'WEITER tippen  →  Menü' : 'LEERTASTE / A  →  Menü', textStyle(18, CSS.white));
 
     this.launchConfetti();
     Music.stop();

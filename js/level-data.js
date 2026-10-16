@@ -13,11 +13,17 @@ const STAGES = Object.freeze({
     text: 'Der Dozent schreibt an die Tafel. Sobald er dir den Rücken zudreht: Handy raus und scrollen, ' +
       'bis dein Dopamin-Meter voll ist. Dreht er sich um – Handy WEG! Werbung musst du erst abwarten, ' +
       'bevor du sie überspringen kannst. Ab der Hälfte wird er misstrauisch …',
+    touchLayout: 'lecture',
     controls: [
-      'Handy raus (halten):  ↓   ·   Controller: Stick / Steuerkreuz nach unten',
-      'Scrollen (spammen) / Werbung überspringen:  LEERTASTE   ·   Controller: A'
+      'Handy raus (halten):  ↓ / S   ·   Controller: Stick / Steuerkreuz nach unten',
+      'Scrollen (spammen) / Werbung überspringen:  LEERTASTE   ·   Controller: A / B / X / Y'
     ],
-    hint: '↓ halten = Handy raus  ·  LEERTASTE spammen = scrollen'
+    touchControls: [
+      'Handy raus: 📱-Button links gedrückt halten',
+      'Scrollen / Werbung überspringen: 👆-Button rechts antippen'
+    ],
+    hint: '↓ / S halten = Handy raus  ·  LEERTASTE spammen = scrollen',
+    touchHint: '📱 halten = Handy raus  ·  👆 antippen = scrollen'
   },
   2: {
     sceneKey: SCENES.sneak,
@@ -27,11 +33,17 @@ const STAGES = Object.freeze({
     text: 'Sammle alle ECTS – erst dann geht die Tür unten links auf. Der Dozent läuft durch die Gänge und ' +
       'kommt sofort nachsehen, wenn es raschelt! Herzen füllen verlorene Leben auf, mit dem DHBW-Schirm ' +
       'schlägst du später Papierflieger weg. Kommilitonen verdecken dich immer, Tische nur geduckt.',
+    touchLayout: 'sneak',
     controls: [
-      'Bewegen:  Pfeiltasten   ·   Controller: Stick / Steuerkreuz',
-      'Ducken & schleichen (halten):  LEERTASTE   ·   Controller: A'
+      'Bewegen:  Pfeiltasten / WASD   ·   Controller: Stick / Steuerkreuz',
+      'Ducken & schleichen (halten):  LEERTASTE   ·   Controller: A / B / X / Y'
     ],
-    hint: 'LEERTASTE halten = ducken & schleichen  ·  Erst alle ECTS, dann zur Tür unten links'
+    touchControls: [
+      'Bewegen: Steuerkreuz links',
+      'Ducken & schleichen: 🤫-Button rechts gedrückt halten'
+    ],
+    hint: 'LEERTASTE halten = ducken & schleichen  ·  Erst alle ECTS, dann zur Tür unten links',
+    touchHint: '🤫 halten = ducken & schleichen  ·  Erst alle ECTS, dann zur Tür unten links'
   },
   3: {
     sceneKey: SCENES.platform,
@@ -40,11 +52,17 @@ const STAGES = Object.freeze({
     hudLabel: 'Schritt 3/3 · Treppenhaus',
     text: 'Vom 3. OG runter bis zum Ausgang im EG. Weich Dozenten, Putzwagen und Papierfliegern aus, ' +
       'sammle ECTS und Herzen. Kaffee gibt dir kurz einen Doppelsprung!',
+    touchLayout: 'platform',
     controls: [
-      'Laufen:  ← →   ·   Controller: Stick / Steuerkreuz',
-      'Springen:  LEERTASTE   ·   Controller: A'
+      'Laufen:  ← → / A D   ·   Controller: Stick / Steuerkreuz',
+      'Springen:  ↑ / W   ·   Controller: A / B'
     ],
-    hint: null
+    touchControls: [
+      'Laufen: ◀ ▶ links',
+      'Springen: ⤒-Button rechts'
+    ],
+    hint: null,
+    touchHint: null
   }
 });
 

@@ -8,7 +8,7 @@ class MenuScene extends ScreenScene {
   constructor() { super(SCENES.menu); }
 
   create() {
-    this.setupScreen();
+    this.setupScreen(0, 'menu');
     Music.play('menu');
     this.drawBuilding();
 
@@ -16,7 +16,8 @@ class MenuScene extends ScreenScene {
     this.tweens.add({ targets: title, y: 118, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.add.text(GAME_WIDTH / 2, 175, 'Raus aus der Vorlesung. Rein ins Sofa.', textStyle(20, CSS.accent, FONT_BODY)).setOrigin(0.5);
 
-    addBlinkingText(this, GAME_WIDTH / 2, 255, 'LEERTASTE / A  →  Start', textStyle(26, CSS.white), 0.25);
+    const startHint = TouchControls.enabled ? 'START tippen' : 'LEERTASTE / A  →  Start';
+    addBlinkingText(this, GAME_WIDTH / 2, 255, startHint, textStyle(26, CSS.white), 0.25);
 
     const records = Records.load();
     this.add.text(GAME_WIDTH / 2, 300,
@@ -26,7 +27,7 @@ class MenuScene extends ScreenScene {
     // Gut sichtbarer Hinweis, solange der Browser den Ton noch sperrt
     this.soundHint = this.add.container(GAME_WIDTH / 2, 214, [
       this.add.rectangle(0, 0, 780, 34, 0x7a1010, 0.9).setStrokeStyle(2, COLORS.accent),
-      this.add.text(0, 0, '🔇 Ton ist aus – klick einmal ins Spiel oder drück eine Taste auf der Tastatur (Controller zählt nicht)',
+      this.add.text(0, 0, '🔇 Ton ist aus – einmal ins Spiel klicken/tippen oder eine Taste auf der Tastatur drücken (Controller zählt nicht)',
         textStyle(14, CSS.white, FONT_BODY)).setOrigin(0.5)
     ]);
     this.tweens.add({ targets: this.soundHint, alpha: 0.6, duration: 700, yoyo: true, repeat: -1 });
@@ -38,8 +39,9 @@ class MenuScene extends ScreenScene {
       .setOrigin(0.5, 0);
 
     this.add.text(GAME_WIDTH / 2, 505,
-      'Pfeiltasten + LEERTASTE  oder  Controller: Starte mit A – diese Taste wird deine Aktionstaste   ·   ESC / + = Menü',
-      textStyle(14, CSS.white, FONT_BODY)).setOrigin(0.5);
+      'Pfeiltasten/WASD · ↑/W springen · LEERTASTE = Aktion   ·   Controller: A/B springen, X/Y Schirm   ·   ESC / + = Menü',
+      textStyle(13, CSS.white, FONT_BODY)).setOrigin(0.5);
+    this.add.text(GAME_WIDTH - 8, GAME_HEIGHT - 6, `v${GAME_VERSION}`, textStyle(11, CSS.gray, FONT_BODY)).setOrigin(1, 1);
   }
 
   drawBuilding() {
@@ -71,18 +73,8 @@ class MenuScene extends ScreenScene {
     this.soundHint.setVisible(!SFX.isRunning());
     this.audioText.setText(SFX.describe());
     this.audioText.setColor(SFX.lastError ? CSS.danger : CSS.gray);
-    const padLines = GameInput.describeGamepads();
-    if (this.inputs.hasGamepad) padLines.push(`Aktionstaste: Taste ${GameInput.actionButton}`);
-    this.padText.setText(padLines.join('\n'));
-    this.padText.setColor(this.inputs.hasGamepad ? CSS.success : CSS.gray);
-
-    // Mit welcher Controller-Taste gestartet wird, die wird zur Aktionstaste
-    const faceButton = this.inputs.newlyPressedPadButton(CONTROLS.faceButtons);
-    if (faceButton !== null) {
-      GameInput.setActionButton(faceButton);
-      this.startNewGame();
-    } else if (this.confirmPressed()) {
-      this.startNewGame();
-    }
+    this.padText.setText(TouchControls.enabled ? '📱 Touch-Steuerung aktiv' : GameInput.describeGamepads().join('\n'));
+    this.padText.setColor(this.inputs.hasGamepad || TouchControls.enabled ? CSS.success : CSS.gray);
+    if (this.confirmPressed()) this.startNewGame();
   }
 }

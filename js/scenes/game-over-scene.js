@@ -21,7 +21,7 @@ class GameOverScene extends ScreenScene {
     this.tweens.add({ targets: letter, alpha: 1, scale: 1, y: 238, duration: 450, ease: 'Cubic.easeOut' });
     this.time.delayedCall(900, () => this.stampLetter(letter));
 
-    addBlinkingText(this, GAME_WIDTH / 2, 492, 'Nochmal: LEERTASTE / A', textStyle(20, CSS.white));
+    addBlinkingText(this, GAME_WIDTH / 2, 492, TouchControls.enabled ? 'Nochmal: WEITER tippen' : 'Nochmal: LEERTASTE / A', textStyle(20, CSS.white));
     this.add.text(GAME_WIDTH / 2, 522, 'Menü: ESC / +', textStyle(14, CSS.gray, FONT_BODY)).setOrigin(0.5);
   }
 

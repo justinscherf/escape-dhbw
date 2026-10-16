@@ -16,7 +16,9 @@ const Display = {
     if (window.innerWidth === 0 || window.innerHeight === 0) return this.res; // Fenster (noch) unsichtbar
     const fit = Math.min(window.innerWidth / GAME_WIDTH, window.innerHeight / GAME_HEIGHT);
     const wanted = fit * (window.devicePixelRatio || 1);
-    return Phaser.Math.Clamp(Math.ceil(wanted / DISPLAY.resStep) * DISPLAY.resStep, 1, DISPLAY.maxRes);
+    const isTouchDevice = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const maxRes = isTouchDevice ? DISPLAY.maxResTouch : DISPLAY.maxRes;
+    return Phaser.Math.Clamp(Math.ceil(wanted / DISPLAY.resStep) * DISPLAY.resStep, 1, maxRes);
   },
 
   textResolution() {

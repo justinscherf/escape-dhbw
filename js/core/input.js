@@ -1,50 +1,55 @@
 'use strict';
 
 // =====================================================================
-//  EINGABE
-//  Pro Aktion genau eine Taste – siehe CONTROLS in config.js:
-//    Tastatur:   Pfeiltasten + LEERTASTE (ESC = Menü)
-//    Controller: Stick / Steuerkreuz + A (+ = Menü)
+//  EINGABE – Tastatur, Controller und Touch-Buttons hinter einer Schnittstelle
+//  Aktionen und ihre Tasten stehen in CONTROLS (config.js):
+//    left/right/up/down  Bewegen
+//    jump                Springen (Schritt 3)
+//    action              Scrollen, Ducken, Bestätigen
+//    swing               DHBW-Schirm schwingen (Schritt 3)
+//    menu                zurück ins Menü
 //  Mehrere verbundene Controller werden zusammengeführt.
-//  Welche Controller-Taste "A" ist, nummerieren Browser unterschiedlich. Deshalb
-//  merkt sich das Spiel die Taste, mit der im Menü gestartet wird.
-
 // =====================================================================
 
-const INPUT_ACTIONS = Object.freeze(['left', 'right', 'up', 'down', 'action', 'swing', 'menu']);
+const INPUT_ACTIONS = Object.freeze(['left', 'right', 'up', 'down', 'jump', 'action', 'swing', 'menu']);
 
 class GameInput {
   constructor(scene) {
-    this.keys = scene.input.keyboard.addKeys(CONTROLS.keyboard);
     this.held = {};
     this.pressed = {};
     this.stick = { x: 0, y: 0 };
     this.hasGamepad = false;
     this.isFirstUpdate = true;
-    this.padButtons = [];
-    this.previousPadButtons = [];
     // Sehr kurze Tastendrücke können zwischen zwei Frames liegen – deshalb per Ereignis merken
     this.tappedKeys = new Set();
+    // Pro Aktion die zugehörigen Tasten (eine Taste kann zu mehreren Aktionen gehören, z. B. ↑)
+    const keyCache = {};
+    this.keys = {};
     INPUT_ACTIONS.forEach((action) => {
-      this.keys[action].on('down', () => this.tappedKeys.add(action));
+      this.keys[action] = CONTROLS.keyboard[action].map((name) => {
+        keyCache[name] = keyCache[name] || scene.input.keyboard.addKey(name);
+        keyCache[name].on('down', () => this.tappedKeys.add(action));
+        return keyCache[name];
+      });
     });
   }
 
   // Einmal pro Frame aufrufen, bevor Eingaben abgefragt werden
   update() {
     const pad = GameInput.readGamepads();
+    const touchTapped = TouchControls.takeTapped();
     this.hasGamepad = pad.connected;
     this.stick = pad.stick;
-    this.previousPadButtons = this.isFirstUpdate ? pad.buttons : this.padButtons;
-    this.padButtons = pad.buttons;
     const previous = this.held;
     this.held = {};
     this.pressed = {};
     INPUT_ACTIONS.forEach((action) => {
-      this.held[action] = this.keys[action].isDown || pad.buttons[GameInput.buttonFor(action)] === true;
+      const keyDown = this.keys[action].some((key) => key.isDown);
+      const buttonDown = CONTROLS.gamepad[action].some((index) => pad.buttons[index] === true);
+      this.held[action] = keyDown || buttonDown || TouchControls.held[action] === true;
       // Tasten, die beim Szenenwechsel noch gedrückt sind, zählen nicht als neuer Druck
       const newlyHeld = !this.isFirstUpdate && this.held[action] && !previous[action];
-      this.pressed[action] = newlyHeld || this.tappedKeys.has(action);
+      this.pressed[action] = newlyHeld || this.tappedKeys.has(action) || touchTapped.has(action);
     });
     this.tappedKeys.clear();
     this.isFirstUpdate = false;
@@ -59,25 +64,6 @@ class GameInput {
   // Nur im Frame des Drückens true
   wasPressed(action) {
     return this.pressed[action] === true;
-  }
-
-  // Erste der angegebenen Controller-Tasten, die gerade neu gedrückt wurde (oder null)
-  newlyPressedPadButton(candidates) {
-    const index = candidates.find((i) => this.padButtons[i] === true && this.previousPadButtons[i] !== true);
-    return index === undefined ? null : index;
-  }
-
-  // ---------- Aktionstaste des Controllers ----------
-  static buttonFor(action) {
-    if (action === 'action') return GameInput.actionButton;
-    // Schwingen: Y – außer Y wurde im Menü als Aktionstaste gelernt, dann X
-    if (action === 'swing' && CONTROLS.gamepad.swing === GameInput.actionButton) return 3;
-    return CONTROLS.gamepad[action];
-  }
-
-  static setActionButton(index) {
-    GameInput.actionButton = index;
-    Storage.save(STORAGE_KEYS.padActionButton, index);
   }
 
   // Richtung als Vektor mit Länge ≤ 1 (Stick analog, Tasten/Steuerkreuz digital)
@@ -117,7 +103,7 @@ class GameInput {
     const hat = pad.axes[9];
     if (hat === undefined || Math.abs(hat) > 1.05) return;
     const near = (value) => Math.abs(hat - value) < 0.15;
-    const dpad = CONTROLS.gamepad;
+    const dpad = CONTROLS.dpad;
     if (near(-1) || near(-0.714) || near(1)) buttons[dpad.up] = true;
     if (near(-0.714) || near(-0.428) || near(-0.142)) buttons[dpad.right] = true;
     if (near(-0.142) || near(0.142) || near(0.428)) buttons[dpad.down] = true;
@@ -158,5 +144,3 @@ class GameInput {
     });
   }
 }
-
-GameInput.actionButton = Storage.load(STORAGE_KEYS.padActionButton, CONTROLS.gamepad.action);

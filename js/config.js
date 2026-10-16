@@ -15,6 +15,7 @@ const MAX_FRAME_MS = 50; // längere Frames (z. B. nach einem Tab-Wechsel) werde
 // Auflösung: das Canvas wächst mit Fenster und Retina-Display (siehe core/display.js)
 const DISPLAY = Object.freeze({
   maxRes: 3,          // höchstens 3-fache Auflösung (2880 × 1620)
+  maxResTouch: 2,     // auf Handy/Tablet höchstens 2-fach – schont Akku und Grafikchip
   resStep: 0.25,      // Auflösung in Viertelschritten
   textureRes: 3       // erzeugte Texturen werden 3-fach gezeichnet und verkleinert angezeigt
 });
@@ -90,18 +91,38 @@ const FONT_BODY = '"Trebuchet MS", Arial, sans-serif';
 
 const STORAGE_KEYS = Object.freeze({
   highscore: 'escapeDhbw.highscore',
-  bestTime: 'escapeDhbw.bestTime',
-  padActionButton: 'escapeDhbw.padActionButton'
+  bestTime: 'escapeDhbw.bestTime'
 });
 
-// ---------- Steuerung: pro Aktion genau eine Taste ----------
-// Tastatur: Pfeiltasten + LEERTASTE · Controller: Stick/Steuerkreuz + A · ESC bzw. + = Menü
+// ---------- Steuerung ----------
+// Tastatur:   Pfeiltasten / WASD bewegen, ↑ / W springen, LEERTASTE = Aktion (Scrollen, Ducken, Schirm)
+// Controller: Stick / Steuerkreuz bewegen, A / B springen, X / Y = Schirm, A / B / X / Y = Aktion in Menüs
+// Touch:      Bildschirm-Buttons (siehe core/touch.js)
+// Mehrere Tasten pro Aktion sind möglich (Listen).
 const CONTROLS = Object.freeze({
-  keyboard: { left: 'LEFT', right: 'RIGHT', up: 'UP', down: 'DOWN', action: 'SPACE', swing: 'X', menu: 'ESC' },
-  // Controller im "standard"-Mapping – in Chrome ist beim Switch Pro Controller A = 1 und + = 9.
-  // Die Aktionstaste ist nur der Startwert: Das Menü merkt sich die Taste, mit der gestartet wird.
-  gamepad: { left: 14, right: 15, up: 12, down: 13, action: 1, swing: 2, menu: 9 }, // swing: Y beim Switch Pro
-  faceButtons: [0, 1, 2, 3],
+  keyboard: {
+    left: ['LEFT', 'A'],
+    right: ['RIGHT', 'D'],
+    up: ['UP', 'W'],
+    down: ['DOWN', 'S'],
+    jump: ['UP', 'W'],
+    action: ['SPACE'],
+    swing: ['SPACE'],
+    menu: ['ESC']
+  },
+  // Controller im "standard"-Mapping: 0 = unten, 1 = rechts, 2 = links, 3 = oben
+  // (Switch Pro: B, A, Y, X) · 12–15 = Steuerkreuz · 8/9 = − / +
+  gamepad: {
+    left: [14],
+    right: [15],
+    up: [12],
+    down: [13],
+    jump: [0, 1, 12],
+    action: [0, 1, 2, 3],
+    swing: [2, 3],
+    menu: [8, 9]
+  },
+  dpad: { up: 12, down: 13, left: 14, right: 15 },
   stickDeadzone: 0.25,
   downThreshold: 0.5       // ab diesem Ausschlag gilt "nach unten" (Handy in Schritt 1)
 });

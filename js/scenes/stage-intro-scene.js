@@ -23,8 +23,9 @@ class StageIntroScene extends ScreenScene {
       align: 'center',
       wordWrap: { width: 680 }
     }).setOrigin(0.5);
-    this.stage.controls.forEach((line, i) => {
-      this.add.text(GAME_WIDTH / 2, 295 + i * 32, line, textStyle(16, CSS.accent, FONT_BODY)).setOrigin(0.5);
+    const controls = TouchControls.enabled ? this.stage.touchControls : this.stage.controls;
+    controls.forEach((line, i) => {
+      this.add.text(GAME_WIDTH / 2, 280 + i * 26, line, textStyle(15, CSS.accent, FONT_BODY)).setOrigin(0.5);
     });
 
     this.add.text(GAME_WIDTH / 2, 365,
@@ -32,11 +33,12 @@ class StageIntroScene extends ScreenScene {
       textStyle(16, CSS.gray, FONT_BODY)).setOrigin(0.5);
 
     if (GameState.hasUmbrella && this.stage.sceneKey === SCENES.platform) {
-      this.add.text(GAME_WIDTH / 2, 390, '☂ DHBW-Schirm schwingen:  X   ·   Controller: Y  –  wehrt Papierflieger ab und betäubt Dozenten',
+      const swingKey = TouchControls.enabled ? 'Button ☂' : 'LEERTASTE   ·   Controller: X / Y';
+      this.add.text(GAME_WIDTH / 2, 390, `☂ DHBW-Schirm schwingen:  ${swingKey}  –  wehrt Papierflieger ab und betäubt Dozenten`,
         textStyle(15, CSS.accent, FONT_BODY)).setOrigin(0.5);
     }
 
-    addBlinkingText(this, GAME_WIDTH / 2, 420, 'Bereit? LEERTASTE / A', textStyle(22, CSS.success));
+    addBlinkingText(this, GAME_WIDTH / 2, 420, TouchControls.enabled ? 'Bereit? WEITER tippen' : 'Bereit? LEERTASTE / A', textStyle(22, CSS.success));
   }
 
   update() {

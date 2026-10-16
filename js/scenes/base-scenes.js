@@ -13,10 +13,12 @@ class LevelScene extends Phaser.Scene {
     this.stageNumber = stageNumber;
     this.stageInfo = STAGES[stageNumber];
     Display.setupCamera(this.cameras.main);
+    TouchControls.setLayout(this.stageInfo.touchLayout, { umbrella: GameState.hasUmbrella });
     this.inputs = new GameInput(this);
     this.finished = false;
     this.hud = new Hud(this, this.stageInfo.hudLabel);
-    if (this.stageInfo.hint) this.showHint(this.stageInfo.hint);
+    const hint = TouchControls.enabled ? this.stageInfo.touchHint : this.stageInfo.hint;
+    if (hint) this.showHint(hint);
     this.cameras.main.fadeIn(TIMING.fadeMs);
     Music.play(this.stageInfo.music);
     this.events.once('shutdown', () => {
@@ -111,8 +113,9 @@ class LevelScene extends Phaser.Scene {
 
 class ScreenScene extends Phaser.Scene {
   // Am Anfang von create() aufrufen; Eingaben zählen erst nach inputLockMs
-  setupScreen(inputLockMs = 0) {
+  setupScreen(inputLockMs = 0, touchLayout = 'screen') {
     Display.setupCamera(this.cameras.main);
+    TouchControls.setLayout(touchLayout);
     this.inputs = new GameInput(this);
     this.ready = inputLockMs <= 0;
     if (!this.ready) this.time.delayedCall(inputLockMs, () => { this.ready = true; });

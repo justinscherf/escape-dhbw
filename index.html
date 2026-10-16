@@ -2,7 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Escape DHBW</title>
 <style>
   html, body {
@@ -10,6 +11,12 @@
     height: 100%;
     background: #0d0d0d;
     overflow: hidden;
+    /* Auf dem Handy: kein Scrollen, kein Zoomen, kein Markieren beim Gedrückthalten */
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
   #game {
     width: 100%;
@@ -18,11 +25,91 @@
     align-items: center;
     justify-content: center;
   }
+
+  /* ---------- Touch-Steuerung (nur auf Handy/Tablet sichtbar) ---------- */
+  #touch { display: none; }
+  body.touch #touch { display: block; }
+  .touch-group {
+    position: fixed;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    z-index: 10;
+  }
+  #touch-left { left: max(14px, env(safe-area-inset-left)); }
+  #touch-right { right: max(14px, env(safe-area-inset-right)); }
+  /* Steuerkreuz für Schritt 2: vier Richtungen im Kreuz */
+  #touch-left.cross {
+    display: grid;
+    grid-template-columns: repeat(3, var(--btn));
+    grid-template-rows: repeat(3, var(--btn));
+    gap: 6px;
+  }
+  #touch-left.cross [data-action="up"] { grid-area: 1 / 2; }
+  #touch-left.cross [data-action="left"] { grid-area: 2 / 1; }
+  #touch-left.cross [data-action="right"] { grid-area: 2 / 3; }
+  #touch-left.cross [data-action="down"] { grid-area: 3 / 2; }
+  :root { --btn: clamp(54px, 15vmin, 92px); }
+  .touch-btn {
+    width: var(--btn);
+    height: var(--btn);
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font: bold clamp(13px, 3.4vmin, 18px) "Trebuchet MS", Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.1;
+    padding: 0;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    text-shadow: 0 1px 3px #000;
+  }
+  .touch-btn.big { width: calc(var(--btn) * 1.2); height: calc(var(--btn) * 1.2); }
+  .touch-btn.wide { width: calc(var(--btn) * 1.7); border-radius: 999px; }
+  .touch-btn.active { background: rgba(255, 210, 63, 0.55); border-color: #ffd23f; }
+  #touch-menu {
+    position: fixed;
+    top: max(52px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    z-index: 10;
+  }
+
+  /* Hochformat auf dem Handy: Bitte drehen */
+  #rotate-hint {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: #111;
+    color: #fff;
+    font: 20px "Trebuchet MS", Arial, sans-serif;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+  @media (orientation: portrait) {
+    body.touch #rotate-hint { display: flex; }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 </head>
 <body>
 <div id="game"></div>
+<div id="touch">
+  <div id="touch-left" class="touch-group"></div>
+  <div id="touch-right" class="touch-group"></div>
+</div>
+<div id="rotate-hint"><div style="font-size:56px">📱↻</div>Bitte das Handy quer halten</div>
 
 <!--
   ESCAPE DHBW – ein Vibe-Coding-Spiel in drei Schritten:
@@ -34,8 +121,11 @@
   ohne Server startet. Die Reihenfolge ist wichtig: Konfiguration → Kern → Grafik → Szenen → Start.
 -->
 <script>
-  // Lädt die Skripte der Reihe nach – mit Zeitstempel, damit der Browser nie
-  // veraltete Versionen aus seinem Zwischenspeicher verwendet
+  // Versionsnummer für den Browser-Zwischenspeicher: Nach jeder Änderung, die online
+  // gehen soll, hochzählen – dann laden alle Besucher die neuen Skripte, sonst kommen
+  // sie aus dem Zwischenspeicher. Lokal (localhost / Doppelklick) wird immer frisch geladen.
+  const GAME_VERSION = '2.1.0';
+
   const GAME_SCRIPTS = [
     'js/config.js',
     'js/level-data.js',
@@ -45,6 +135,7 @@
     'js/core/state.js',
     'js/core/audio.js',
     'js/core/music.js',
+    'js/core/touch.js',
     'js/core/input.js',
     'js/core/hud.js',
 
@@ -65,11 +156,12 @@
 
     'js/main.js'
   ];
-  const cacheBuster = Date.now();
+  const isLocalDevelopment = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+  const cacheKey = isLocalDevelopment ? Date.now() : GAME_VERSION;
   (function loadScript(index) {
     if (index >= GAME_SCRIPTS.length) return;
     const script = document.createElement('script');
-    script.src = `${GAME_SCRIPTS[index]}?v=${cacheBuster}`;
+    script.src = `${GAME_SCRIPTS[index]}?v=${cacheKey}`;
     script.onload = () => loadScript(index + 1);
     script.onerror = () => console.error(`Skript konnte nicht geladen werden: ${GAME_SCRIPTS[index]}`);
     document.body.appendChild(script);
