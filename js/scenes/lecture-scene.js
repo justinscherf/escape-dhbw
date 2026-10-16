@@ -76,16 +76,19 @@ class LectureScene extends LevelScene {
 
   // ---------- Raum ----------
   drawRoom() {
+    const ext = Display.extent(); // auf breiten/hohen Bildschirmen geht der Raum seitlich und oben/unten weiter
     const g = this.add.graphics().setDepth(0);
     g.fillStyle(COLORS.wall, 1);
-    g.fillRect(0, 0, GAME_WIDTH, 335);
+    g.fillRect(ext.left, ext.top, ext.width, 335 - ext.top);
     g.fillStyle(0xc4c4c4, 1);
-    g.fillRect(0, 290, GAME_WIDTH, 45);
+    g.fillRect(ext.left, 290, ext.width, 45);
     // Deckenlichter
     g.fillStyle(0xffffff, 1);
     [180, 420, 660].forEach((x) => g.fillRect(x, 44, 120, 8));
     // Seitenwände
     g.fillStyle(0xb0b0b0, 1);
+    g.fillRect(ext.left, ext.top, -ext.left, 420 - ext.top);
+    g.fillRect(GAME_WIDTH, ext.top, ext.right - GAME_WIDTH, 420 - ext.top);
     g.fillPoints([{ x: 0, y: 0 }, { x: 110, y: 30 }, { x: 110, y: 335 }, { x: 0, y: 420 }], true);
     g.fillPoints([{ x: GAME_WIDTH, y: 0 }, { x: 850, y: 30 }, { x: 850, y: 335 }, { x: GAME_WIDTH, y: 420 }], true);
     // Tür auf der linken Wand – das Ziel von Schritt 2
@@ -96,10 +99,10 @@ class LectureScene extends LevelScene {
     this.add.text(55, 137, 'EXIT', textStyle(9, CSS.white, FONT_BODY)).setOrigin(0.5, 0).setDepth(1);
     // Boden
     g.fillStyle(COLORS.floor, 1);
-    g.fillPoints([{ x: 110, y: 335 }, { x: 850, y: 335 }, { x: GAME_WIDTH, y: 420 },
-      { x: GAME_WIDTH, y: GAME_HEIGHT }, { x: 0, y: GAME_HEIGHT }, { x: 0, y: 420 }], true);
+    g.fillPoints([{ x: 110, y: 335 }, { x: 850, y: 335 }, { x: ext.right, y: 420 },
+      { x: ext.right, y: ext.bottom }, { x: ext.left, y: ext.bottom }, { x: ext.left, y: 420 }], true);
     g.lineStyle(2, COLORS.floorDark, 0.6);
-    for (let i = 0; i < 8; i++) g.lineBetween(110 + i * 105, 335, -200 + i * 200, GAME_HEIGHT);
+    for (let i = -2; i < 10; i++) g.lineBetween(110 + i * 105, 335, -200 + i * 200, GAME_HEIGHT);
     // Wanduhr (Zeiger zeigen die echte Uhrzeit, siehe updateClock)
     const clock = LECTURE_LAYOUT.clock;
     g.fillStyle(COLORS.white, 1);
@@ -207,12 +210,14 @@ class LectureScene extends LevelScene {
     }
 
     // Vordere Reihe direkt vor dir
+    // Auf breiten Bildschirmen sitzen links und rechts noch mehr Leute
+    const ext = Display.extent();
     const nearRow = this.add.graphics().setDepth(5);
     nearRow.fillStyle(0x7a7a7a, 1);
-    nearRow.fillRect(60, 418, 840, 16);
-    [120, 240, 360, 600, 720, 840].forEach((x) => {
-      drawStudentBack(nearRow, x, 398, 1.1, pickRandom(hairColors), pickRandom(shirtColors));
-    });
+    nearRow.fillRect(ext.left, 418, ext.width, 16);
+    [-120, 0, 120, 240, 360, 600, 720, 840, 960, 1080]
+      .filter((x) => x > ext.left - 30 && x < ext.right + 30)
+      .forEach((x) => drawStudentBack(nearRow, x, 398, 1.1, pickRandom(hairColors), pickRandom(shirtColors)));
 
     // Ein Kommilitone schläft – Kopf nickt langsam
     const sleeper = this.add.graphics().setDepth(5).setPosition(480, 398);
@@ -226,11 +231,12 @@ class LectureScene extends LevelScene {
   }
 
   drawDesk() {
+    const ext = Display.extent();
     const g = this.add.graphics().setDepth(6);
     g.fillStyle(0x5a5a5a, 1);
-    g.fillRect(0, 470, GAME_WIDTH, 70);
+    g.fillRect(ext.left, 470, ext.width, ext.bottom - 470);
     g.fillStyle(0x808080, 1);
-    g.fillRect(0, 470, GAME_WIDTH, 6);
+    g.fillRect(ext.left, 470, ext.width, 6);
     // Collegeblock und Stift
     g.fillStyle(COLORS.white, 1);
     g.fillRect(250, 482, 190, 58);
@@ -582,9 +588,16 @@ class LectureScene extends LevelScene {
     this.add.text(x + 26, suspicionY, '👀', { fontSize: '16px' }).setOrigin(0, 0.5).setDepth(32);
 
     // Rötlicher Bildschirmrand in der misstrauischen Phase
-    this.suspicionGlow = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 8, GAME_HEIGHT - 8)
-      .setStrokeStyle(8, COLORS.danger, 0.5).setDepth(850).setVisible(false);
+    this.suspicionGlow = this.add.rectangle(0, 0, 10, 10)
+      .setStrokeStyle(8, COLORS.danger, 0.5).setScrollFactor(0).setDepth(850).setVisible(false);
     this.tweens.add({ targets: this.suspicionGlow, alpha: 0.3, duration: 700, yoyo: true, repeat: -1 });
+    this.onViewResize();
+  }
+
+  // Rand der misstrauischen Phase an die echten Bildschirmränder legen
+  onViewResize() {
+    const { width, height } = Display.view;
+    this.suspicionGlow.setPosition(width / 2, height / 2).setSize(width - 8, height - 8);
   }
 
   updateDopamine(dt) {

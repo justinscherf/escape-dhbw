@@ -28,8 +28,10 @@ class LevelScene extends Phaser.Scene {
   }
 
   showHint(text) {
-    const hint = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 20, text, textStyle(15, CSS.white, FONT_BODY))
+    const hint = this.add.text(0, 0, text, textStyle(15, CSS.white, FONT_BODY))
       .setOrigin(0.5).setScrollFactor(0).setDepth(DEPTH.hint);
+    this.hintText = hint;
+    this.layoutHint();
     this.tweens.add({
       targets: hint,
       alpha: 0,
@@ -37,6 +39,11 @@ class LevelScene extends Phaser.Scene {
       duration: 800,
       onComplete: () => hint.destroy()
     });
+  }
+
+  // Hinweis unten mittig am echten Bildschirmrand (auch nach dem Drehen)
+  layoutHint() {
+    if (this.hintText && this.hintText.active) this.hintText.setPosition(Display.view.width / 2, Display.view.height - 20);
   }
 
   // Am Anfang von update() aufrufen. Liefert die Frame-Zeit in ms –

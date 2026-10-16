@@ -9,18 +9,27 @@ class Hud {
     this.scene = scene;
     const fixed = (gameObject) => gameObject.setScrollFactor(0).setDepth(DEPTH.hud);
 
-    fixed(scene.add.rectangle(0, 0, GAME_WIDTH, 40, 0x000000, 0.55).setOrigin(0));
+    this.background = fixed(scene.add.rectangle(0, 0, GAME_WIDTH, 40, 0x000000, 0.55).setOrigin(0));
     this.scoreText = fixed(scene.add.text(16, 8, '', textStyle(20)));
-    this.timeText = fixed(scene.add.text(GAME_WIDTH / 2, 8, '', textStyle(20, CSS.accent)).setOrigin(0.5, 0));
-    fixed(scene.add.text(GAME_WIDTH / 2, 44, stageLabel, textStyle(14, CSS.gray, FONT_BODY)).setOrigin(0.5, 0));
+    this.timeText = fixed(scene.add.text(0, 8, '', textStyle(20, CSS.accent)).setOrigin(0.5, 0));
+    this.stageText = fixed(scene.add.text(0, 44, stageLabel, textStyle(14, CSS.gray, FONT_BODY)).setOrigin(0.5, 0));
     this.extraText = fixed(scene.add.text(16, 46, '', textStyle(16, CSS.accent)));
     this.hearts = [];
-    for (let i = 0; i < START_LIVES; i++) {
-      this.hearts.push(fixed(hiRes(scene.add.image(GAME_WIDTH - 90 + i * 30, 20, TEX.heart))));
-    }
-    this.soundOffText = fixed(scene.add.text(GAME_WIDTH - 16, 46, '🔇 Klick für Ton', textStyle(13, CSS.accent, FONT_BODY)).setOrigin(1, 0));
+    for (let i = 0; i < START_LIVES; i++) this.hearts.push(fixed(hiRes(scene.add.image(0, 20, TEX.heart))));
+    this.soundOffText = fixed(scene.add.text(0, 46, '🔇 Klick für Ton', textStyle(13, CSS.accent, FONT_BODY)).setOrigin(1, 0));
     this.shownLives = GameState.lives;
+    this.layout();
     this.update();
+  }
+
+  // An die echten Bildschirmränder legen (auch nach dem Drehen des Handys)
+  layout() {
+    const { width } = Display.view;
+    this.background.setSize(width, 40);
+    this.timeText.setX(width / 2);
+    this.stageText.setX(width / 2);
+    this.hearts.forEach((heart, i) => heart.setX(width - 90 + i * 30));
+    this.soundOffText.setX(width - 16);
   }
 
   // Zusatzzeile unter dem Score (z. B. ECTS und Kaffee-Timer)

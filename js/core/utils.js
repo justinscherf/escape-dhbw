@@ -64,7 +64,7 @@ function floatText(scene, x, y, text, color = CSS.white, size = 22) {
 
 // Großer Text in der Bildschirmmitte, der kurz aufploppt und wieder verschwindet
 function showBanner(scene, text, color = CSS.white, duration = 1300, size = 46) {
-  const banner = scene.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, text, textStyle(size, color))
+  const banner = scene.add.text(Display.view.width / 2, Display.view.height / 2, text, textStyle(size, color))
     .setOrigin(0.5).setScrollFactor(0).setDepth(DEPTH.banner).setScale(0.3);
   scene.tweens.add({ targets: banner, scale: 1, duration: 260, ease: 'Back.easeOut' });
   scene.tweens.add({

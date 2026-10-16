@@ -141,12 +141,15 @@ function createAllTextures(scene) {
     g.strokeCircle(17, 15, 3);
   });
 
-  // Papierflieger – fliegt nach links
+  // Papierflieger – fliegt nach links; gelbes Papier, damit er sich von den weißen Wänden abhebt
   bakeTexture(scene, TEX.plane, 26, 14, (g) => {
-    g.fillStyle(COLORS.white, 1);
+    g.fillStyle(0xfff4a8, 1);
     g.fillTriangle(0, 7, 26, 0, 18, 7);
-    g.fillStyle(COLORS.lightGray, 1);
+    g.fillStyle(0xead27a, 1);
     g.fillTriangle(0, 7, 18, 7, 26, 14);
+    g.lineStyle(1, 0x9a8540, 0.9);
+    g.strokeTriangle(0, 7, 26, 0, 18, 7);
+    g.strokeTriangle(0, 7, 18, 7, 26, 14);
   });
 
   // Putzwagen des Hausmeisters

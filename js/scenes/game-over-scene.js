@@ -14,7 +14,8 @@ class GameOverScene extends ScreenScene {
   create() {
     this.setupScreen(TIMING.resultInputLockMs);
     Music.stop();
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x140808).setOrigin(0);
+    const ext = Display.extent();
+    this.add.rectangle(ext.left, ext.top, ext.width, ext.height, 0x140808).setOrigin(0);
 
     const letter = this.createLetter();
     letter.setPosition(GAME_WIDTH / 2, 248).setAngle(-1.5).setScale(0.9).setAlpha(0);

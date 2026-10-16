@@ -39,11 +39,11 @@ const STAGES = Object.freeze({
       'Ducken & schleichen (halten):  LEERTASTE   ·   Controller: A / B / X / Y'
     ],
     touchControls: [
-      'Bewegen: Steuerkreuz links',
+      'Bewegen: Finger aufs Spielfeld legen – du läufst dorthin',
       'Ducken & schleichen: 🤫-Button rechts gedrückt halten'
     ],
     hint: 'LEERTASTE halten = ducken & schleichen  ·  Erst alle ECTS, dann zur Tür unten links',
-    touchHint: '🤫 halten = ducken & schleichen  ·  Erst alle ECTS, dann zur Tür unten links'
+    touchHint: '👆 Finger halten = dorthin laufen  ·  🤫 halten = schleichen  ·  Erst alle ECTS, dann zur Tür unten links'
   },
   3: {
     sceneKey: SCENES.platform,

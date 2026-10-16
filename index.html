@@ -39,17 +39,6 @@
   }
   #touch-left { left: max(14px, env(safe-area-inset-left)); }
   #touch-right { right: max(14px, env(safe-area-inset-right)); }
-  /* Steuerkreuz für Schritt 2: vier Richtungen im Kreuz */
-  #touch-left.cross {
-    display: grid;
-    grid-template-columns: repeat(3, var(--btn));
-    grid-template-rows: repeat(3, var(--btn));
-    gap: 6px;
-  }
-  #touch-left.cross [data-action="up"] { grid-area: 1 / 2; }
-  #touch-left.cross [data-action="left"] { grid-area: 2 / 1; }
-  #touch-left.cross [data-action="right"] { grid-area: 2 / 3; }
-  #touch-left.cross [data-action="down"] { grid-area: 3 / 2; }
   :root { --btn: clamp(54px, 15vmin, 92px); }
   .touch-btn {
     width: var(--btn);
@@ -124,7 +113,7 @@
   // Versionsnummer für den Browser-Zwischenspeicher: Nach jeder Änderung, die online
   // gehen soll, hochzählen – dann laden alle Besucher die neuen Skripte, sonst kommen
   // sie aus dem Zwischenspeicher. Lokal (localhost / Doppelklick) wird immer frisch geladen.
-  const GAME_VERSION = '2.1.0';
+  const GAME_VERSION = '2.2.0';
 
   const GAME_SCRIPTS = [
     'js/config.js',

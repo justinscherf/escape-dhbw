@@ -44,11 +44,12 @@ class WinScene extends ScreenScene {
   }
 
   drawHome() {
+    const ext = Display.extent();
     const g = this.add.graphics().setDepth(-1);
     g.fillStyle(0x1b1b1b, 1);
-    g.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    g.fillRect(ext.left, ext.top, ext.width, ext.height);
     g.fillStyle(COLORS.floor, 1);
-    g.fillRect(0, 460, GAME_WIDTH, 80);
+    g.fillRect(ext.left, 460, ext.width, ext.bottom - 460);
     // Sofa
     g.fillStyle(0x6b6b6b, 1);
     g.fillRoundedRect(330, 400, 300, 70, 14);
@@ -61,8 +62,9 @@ class WinScene extends ScreenScene {
   }
 
   launchConfetti() {
-    const emitter = this.add.particles(0, -10, TEX.pixel, {
-      x: { min: 0, max: GAME_WIDTH },
+    const ext = Display.extent();
+    const emitter = this.add.particles(0, ext.top - 10, TEX.pixel, {
+      x: { min: ext.left, max: ext.right },
       speedY: { min: 80, max: 200 },
       speedX: { min: -40, max: 40 },
       rotate: { min: 0, max: 360 },

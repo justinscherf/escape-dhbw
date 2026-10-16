@@ -41,13 +41,20 @@ class MenuScene extends ScreenScene {
     this.add.text(GAME_WIDTH / 2, 505,
       'Pfeiltasten/WASD · ↑/W springen · LEERTASTE = Aktion   ·   Controller: A/B springen, X/Y Schirm   ·   ESC / + = Menü',
       textStyle(13, CSS.white, FONT_BODY)).setOrigin(0.5);
-    this.add.text(GAME_WIDTH - 8, GAME_HEIGHT - 6, `v${GAME_VERSION}`, textStyle(11, CSS.gray, FONT_BODY)).setOrigin(1, 1);
+    this.versionText = this.add.text(0, 0, `v${GAME_VERSION}`, textStyle(11, CSS.gray, FONT_BODY)).setOrigin(1, 1).setScrollFactor(0);
+    this.onViewResize();
+  }
+
+  // Versionsnummer in die echte rechte untere Ecke
+  onViewResize() {
+    this.versionText.setPosition(Display.view.width - 8, Display.view.height - 6);
   }
 
   drawBuilding() {
+    const ext = Display.extent();
     const g = this.add.graphics();
     g.fillStyle(0x151515, 1);
-    g.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    g.fillRect(ext.left, ext.top, ext.width, ext.height);
     g.fillStyle(0x2a2a2a, 1);
     g.fillRect(90, 350, 780, 140);
     g.fillStyle(0x3b3b3b, 1);
@@ -62,9 +69,9 @@ class MenuScene extends ScreenScene {
     g.fillStyle(COLORS.black, 1);
     g.fillRect(450, 455, 60, 35);
     g.fillStyle(COLORS.floor, 1);
-    g.fillRect(0, 488, GAME_WIDTH, 52);
+    g.fillRect(ext.left, 488, ext.width, ext.bottom - 488);
     g.fillStyle(COLORS.floorLight, 1);
-    g.fillRect(0, 488, GAME_WIDTH, 4);
+    g.fillRect(ext.left, 488, ext.width, 4);
     this.add.text(GAME_WIDTH / 2, 352, 'DHBW', textStyle(18, CSS.white)).setOrigin(0.5, 0);
   }
 

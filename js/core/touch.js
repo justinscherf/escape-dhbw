@@ -17,12 +17,9 @@ const TOUCH_LAYOUTS = Object.freeze({
     right: [{ action: 'action', label: '👆<br>Scroll', className: 'big' }],
     menuButton: true
   },
+  // Bewegen per Finger direkt aufs Spielfeld (siehe SneakScene.fingerDirection)
   sneak: {
-    cross: true,
-    left: [
-      { action: 'up', label: '▲' }, { action: 'left', label: '◀' },
-      { action: 'right', label: '▶' }, { action: 'down', label: '▼' }
-    ],
+    left: [],
     right: [{ action: 'action', label: '🤫<br>Ducken', className: 'big' }],
     menuButton: true
   },
@@ -76,7 +73,6 @@ const TouchControls = {
     const visible = (button) => !button.needsUmbrella || options.umbrella;
     this.left.replaceChildren(...layout.left.filter(visible).map((button) => this.createButton(button)));
     this.right.replaceChildren(...layout.right.filter(visible).map((button) => this.createButton(button)));
-    this.left.classList.toggle('cross', layout.cross === true);
     this.menuButton.style.display = layout.menuButton ? 'flex' : 'none';
   },
 

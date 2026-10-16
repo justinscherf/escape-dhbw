@@ -14,7 +14,8 @@ class StageIntroScene extends ScreenScene {
   create() {
     this.setupScreen(TIMING.introInputLockMs);
 
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, COLORS.black).setOrigin(0);
+    const ext = Display.extent();
+    this.add.rectangle(ext.left, ext.top, ext.width, ext.height, COLORS.black).setOrigin(0);
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 760, 380, COLORS.charcoal).setStrokeStyle(4, COLORS.floor);
 
     this.add.text(GAME_WIDTH / 2, 120, this.stage.title, textStyle(34, CSS.white)).setOrigin(0.5);

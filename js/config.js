@@ -16,6 +16,8 @@ const MAX_FRAME_MS = 50; // längere Frames (z. B. nach einem Tab-Wechsel) werde
 const DISPLAY = Object.freeze({
   maxRes: 3,          // höchstens 3-fache Auflösung (2880 × 1620)
   maxResTouch: 2,     // auf Handy/Tablet höchstens 2-fach – schont Akku und Grafikchip
+  maxAspect: 2.4,     // breitestes Format, das ausgefüllt wird (≈ 21,6:9) – breiter: schmale Ränder
+  minAspect: 4 / 3,   // schmalstes Format (Tablet 4:3)
   resStep: 0.25,      // Auflösung in Viertelschritten
   textureRes: 3       // erzeugte Texturen werden 3-fach gezeichnet und verkleinert angezeigt
 });
@@ -199,6 +201,11 @@ const SNEAK = Object.freeze({
   // Spieler
   speed: 165,
   sneakSpeed: 80,
+  // Touch: Figur läuft zum Finger, bremst kurz davor ab
+  fingerStopDistance: 6,
+  fingerSlowRadius: 40,
+  navCell: 16,          // Rastergröße der Wegsuche
+  navClearance: 12,     // Abstand zu Tischen/Wänden (≈ Radius der Figur)
   respawnGraceMs: 1500,
   // Sichtkegel & Entdeckung
   coneRange: 430,

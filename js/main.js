@@ -32,8 +32,8 @@ const gameConfig = {
   loader: isOpenedAsFile ? { imageLoadType: 'HTMLImageElement' } : {},
   parent: 'game',
   // Canvas in Bildschirm-Auflösung; die Kameras zoomen auf die 960 × 540 Spielwelt
-  width: GAME_WIDTH * Display.res,
-  height: GAME_HEIGHT * Display.res,
+  width: Display.canvasSize().width,
+  height: Display.canvasSize().height,
   backgroundColor: '#111111',
   physics: {
     default: 'arcade',

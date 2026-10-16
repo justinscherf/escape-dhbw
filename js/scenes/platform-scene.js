@@ -12,6 +12,7 @@ class PlatformScene extends LevelScene {
   constructor() { super(SCENES.platform); }
 
   create() {
+    this.managesCameraScroll = true; // Kamera folgt dem Spieler statt den Bereich zu zentrieren
     this.setupLevel(3);
     this.checkpoint = LEVEL3.checkpoints[0];
     this.hasJumped = false;
@@ -72,21 +73,22 @@ class PlatformScene extends LevelScene {
   // dt = 0: sofort hinspringen (Levelstart)
   followCamera(dt) {
     const camera = this.cameras.main;
-    const deadzone = { x: (GAME_WIDTH - 140) / 2, y: (GAME_HEIGHT - 90) / 2 };
+    const { width: viewW, height: viewH } = Display.view; // sichtbare Fläche – breiter auf breiten Bildschirmen
+    const deadzone = { x: (viewW - 140) / 2, y: (viewH - 90) / 2 };
     let targetX = camera.scrollX;
     let targetY = camera.scrollY;
     const px = this.player.x - targetX;
     const py = this.player.y - targetY;
     if (dt === 0 || px < deadzone.x) targetX = this.player.x - deadzone.x;
-    else if (px > GAME_WIDTH - deadzone.x) targetX = this.player.x - (GAME_WIDTH - deadzone.x);
+    else if (px > viewW - deadzone.x) targetX = this.player.x - (viewW - deadzone.x);
     if (dt === 0 || py < deadzone.y) targetY = this.player.y - deadzone.y;
-    else if (py > GAME_HEIGHT - deadzone.y) targetY = this.player.y - (GAME_HEIGHT - deadzone.y);
+    else if (py > viewH - deadzone.y) targetY = this.player.y - (viewH - deadzone.y);
     if (dt === 0) {
-      targetX = this.player.x - GAME_WIDTH / 2;
-      targetY = this.player.y - GAME_HEIGHT / 2;
+      targetX = this.player.x - viewW / 2;
+      targetY = this.player.y - viewH / 2;
     }
-    targetX = Phaser.Math.Clamp(targetX, 0, this.cameraBounds.width - GAME_WIDTH);
-    targetY = Phaser.Math.Clamp(targetY, 0, this.cameraBounds.height - GAME_HEIGHT);
+    targetX = Phaser.Math.Clamp(targetX, 0, this.cameraBounds.width - viewW);
+    targetY = Phaser.Math.Clamp(targetY, 0, Math.max(0, this.cameraBounds.height - viewH));
     const follow = dt === 0 ? 1 : 1 - Math.pow(1 - 0.12, dt / 16.67);
     camera.setScroll(
       Phaser.Math.Linear(camera.scrollX, targetX, follow),
@@ -549,7 +551,7 @@ class PlatformScene extends LevelScene {
   spawnPlane() {
     if (this.finished || this.player.x < LEVEL3.floors[1].x0) return;
     const baseY = this.player.y - 10 - Math.random() * 40;
-    const plane = hiRes(this.planes.create(this.cameras.main.scrollX + GAME_WIDTH + 40, baseY, TEX.plane)).setDepth(9);
+    const plane = hiRes(this.planes.create(this.cameras.main.scrollX + Display.view.width + 40, baseY, TEX.plane)).setDepth(9);
     plane.setVelocityX(-PLATFORM.planeSpeed);
     plane.setData({ baseY, phase: Math.random() * Math.PI * 2 });
   }

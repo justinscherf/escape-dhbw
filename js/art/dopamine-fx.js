@@ -16,7 +16,8 @@ class DopamineFx {
       this.vignette = this.camera.postFX.addVignette(0.5, 0.5, 0.8, 0.3);
     }
 
-    this.glow = scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.dopamine)
+    const ext = Display.extent(); // groß genug für jedes Seitenverhältnis
+    this.glow = scene.add.rectangle(0, 0, ext.width, ext.height, COLORS.dopamine).setOrigin(0).setScrollFactor(0)
       .setAlpha(0).setDepth(845).setBlendMode(Phaser.BlendModes.ADD);
     this.hearts = scene.add.particles(0, 0, TEX.heart, {
       speed: { min: 80, max: 240 },
@@ -81,11 +82,13 @@ class DopamineFx {
     });
   }
 
-  // Zoomt um die Bildmitte (die Kamera zoomt sonst von der linken oberen Ecke aus)
+  // Zoomt um die Bildmitte (die Kamera zoomt sonst von der linken oberen Ecke aus);
+  // bei factor = 1 liegt der 960 × 540 Bereich wieder mittig in der sichtbaren Fläche
   applyZoomPunch() {
     const factor = this.zoomPunch.factor;
+    const { width, height } = Display.view;
     this.camera.setZoom(Display.res * factor);
-    this.camera.setScroll((GAME_WIDTH / 2) * (1 - 1 / factor), (GAME_HEIGHT / 2) * (1 - 1 / factor));
+    this.camera.setScroll(GAME_WIDTH / 2 - width / (2 * factor), GAME_HEIGHT / 2 - height / (2 * factor));
   }
 
   showStreak(streak) {

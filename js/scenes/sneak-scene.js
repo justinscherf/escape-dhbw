@@ -89,8 +89,9 @@ class SneakScene extends LevelScene {
     const room = this.room;
     const board = SNEAK_LAYOUT.board;
     const g = this.add.graphics().setDepth(0);
+    const ext = Display.extent();
     g.fillStyle(0x161616, 1);
-    g.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    g.fillRect(ext.left, ext.top, ext.width, ext.height);
     g.fillStyle(COLORS.floor, 1);
     g.fillRect(room.x, room.y, room.width, room.height);
     g.lineStyle(1, COLORS.floorDark, 0.7);
@@ -223,12 +224,17 @@ class SneakScene extends LevelScene {
     this.player = hiRes(this.physics.add.image(seat.x, seat.y, TEX.playerTop)).setDepth(9);
     this.player.body.setCircle(texturePixels(11), texturePixels(4), texturePixels(4));
     this.physics.add.collider(this.player, this.solids);
+    // Zielpunkt der Finger-Steuerung
+    this.fingerMarker = this.add.circle(0, 0, 14).setStrokeStyle(3, COLORS.white, 0.7)
+      .setDepth(11).setVisible(false);
+    this.buildNavGrid();
   }
 
   // ---------- Spieler ----------
   updatePlayer() {
     const sneaking = this.inputs.isHeld('action');
-    const { x, y } = this.inputs.direction();
+    let { x, y } = this.inputs.direction();
+    if (x === 0 && y === 0) ({ x, y } = this.fingerDirection());
     const speed = sneaking ? SNEAK.sneakSpeed : SNEAK.speed;
     const moving = x !== 0 || y !== 0;
     this.player.setVelocity(x * speed, y * speed);
@@ -236,6 +242,151 @@ class SneakScene extends LevelScene {
     if (this.graceMs <= 0) this.player.setAlpha(sneaking ? 0.75 : 1);
     return { sneaking, moving };
   }
+
+  // ---------- Finger-Steuerung (Touch) ----------
+  // Finger irgendwo aufs Spielfeld legen und halten: Die Figur läuft auf dem kürzesten
+  // freien Weg dorthin (um Tische herum) und bremst kurz vor dem Ziel ab.
+  fingerDirection() {
+    const pointer = this.input.activePointer;
+    const active = TouchControls.enabled && pointer && pointer.isDown;
+    this.fingerMarker.setVisible(active);
+    if (!active) {
+      this.fingerPath = null;
+      return { x: 0, y: 0 };
+    }
+    const target = pointer.positionToCamera(this.cameras.main);
+    this.fingerMarker.setPosition(target.x, target.y);
+    const targetCell = this.navCellAt(target.x, target.y);
+    const playerCell = this.navCellAt(this.player.x, this.player.y);
+    if (!this.fingerPath || targetCell !== this.fingerTargetCell || playerCell !== this.fingerPlayerCell) {
+      this.fingerTargetCell = targetCell;
+      this.fingerPlayerCell = playerCell;
+      this.fingerPath = this.findNavPath(this.player, target);
+    }
+    // Erster Wegpunkt, der noch nicht erreicht ist
+    while (this.fingerPath.length > 1
+      && Phaser.Math.Distance.Between(this.player.x, this.player.y, this.fingerPath[0].x, this.fingerPath[0].y) < SNEAK.fingerStopDistance * 2) {
+      this.fingerPath.shift();
+    }
+    const next = this.fingerPath[0];
+    if (!next) return { x: 0, y: 0 };
+    const dx = next.x - this.player.x;
+    const dy = next.y - this.player.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance < SNEAK.fingerStopDistance) return { x: 0, y: 0 };
+    const isLast = this.fingerPath.length === 1;
+    const strength = isLast ? Math.min(1, distance / SNEAK.fingerSlowRadius) : 1;
+    return { x: (dx / distance) * strength, y: (dy / distance) * strength };
+  }
+
+  // Laufraster über Raum und Türöffnung: Zellen, in die die Figur (mit Abstand) passt
+  buildNavGrid() {
+    const { wall } = SNEAK_LAYOUT;
+    const cell = SNEAK.navCell;
+    const clearance = SNEAK.navClearance;
+    const area = { x: this.room.x, y: this.room.y, right: this.room.right, bottom: this.room.bottom + wall + 2 * cell };
+    const cols = Math.ceil((area.right - area.x) / cell);
+    const rows = Math.ceil((area.bottom - area.y) / cell);
+    const blockers = this.solids.getChildren().map((solid) => solid.getBounds());
+    const free = new Uint8Array(cols * rows);
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const cx = area.x + (col + 0.5) * cell;
+        const cy = area.y + (row + 0.5) * cell;
+        const blocked = blockers.some((b) => cx > b.x - clearance && cx < b.right + clearance
+          && cy > b.y - clearance && cy < b.bottom + clearance);
+        free[row * cols + col] = blocked ? 0 : 1;
+      }
+    }
+    this.nav = { area, cell, cols, rows, free };
+  }
+
+  navCellAt(x, y) {
+    const { area, cell, cols, rows } = this.nav;
+    const col = Phaser.Math.Clamp(Math.floor((x - area.x) / cell), 0, cols - 1);
+    const row = Phaser.Math.Clamp(Math.floor((y - area.y) / cell), 0, rows - 1);
+    return row * cols + col;
+  }
+
+  navCellCenter(index) {
+    const { area, cell, cols } = this.nav;
+    return { x: area.x + ((index % cols) + 0.5) * cell, y: area.y + (Math.floor(index / cols) + 0.5) * cell };
+  }
+
+  // Nächste freie Zelle (falls der Finger auf einem Tisch liegt)
+  nearestFreeCell(index) {
+    const { free } = this.nav;
+    if (free[index]) return index;
+    const origin = this.navCellCenter(index);
+    let best = -1;
+    let bestDistance = Infinity;
+    free.forEach((isFree, i) => {
+      if (!isFree) return;
+      const c = this.navCellCenter(i);
+      const d = (c.x - origin.x) ** 2 + (c.y - origin.y) ** 2;
+      if (d < bestDistance) {
+        bestDistance = d;
+        best = i;
+      }
+    });
+    return best === -1 ? index : best;
+  }
+
+  // Breitensuche (8 Richtungen) vom Spieler zum Ziel, danach Abkürzungen auf freier Sichtlinie
+  findNavPath(from, to) {
+    const { cols, rows, free } = this.nav;
+    const start = this.navCellAt(from.x, from.y);
+    const goal = this.nearestFreeCell(this.navCellAt(to.x, to.y));
+    const goalPoint = free[this.navCellAt(to.x, to.y)] ? { x: to.x, y: to.y } : this.navCellCenter(goal);
+    const previous = new Int32Array(cols * rows).fill(-1);
+    previous[start] = start;
+    const queue = [start];
+    for (let head = 0; head < queue.length && previous[goal] === -1; head++) {
+      const current = queue[head];
+      const col = current % cols;
+      const row = Math.floor(current / cols);
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const c = col + dx;
+          const r = row + dy;
+          if ((dx === 0 && dy === 0) || c < 0 || r < 0 || c >= cols || r >= rows) continue;
+          const next = r * cols + c;
+          // Diagonal nur, wenn beide Nachbarn frei sind (nicht über Tischecken schneiden)
+          if (!free[next] || previous[next] !== -1) continue;
+          if (dx !== 0 && dy !== 0 && (!free[row * cols + c] || !free[r * cols + col])) continue;
+          previous[next] = current;
+          queue.push(next);
+        }
+      }
+    }
+    if (previous[goal] === -1) return [goalPoint]; // kein Weg – direkt versuchen
+    const cells = [];
+    for (let i = goal; i !== start; i = previous[i]) cells.unshift(i);
+    const points = cells.map((i) => this.navCellCenter(i));
+    points[points.length - 1] = goalPoint;
+    // Wegpunkte überspringen, solange die direkte Linie frei ist
+    const path = [];
+    let anchor = { x: from.x, y: from.y };
+    for (let i = 0; i < points.length; i++) {
+      const isLast = i === points.length - 1;
+      if (isLast || !this.navLineFree(anchor, points[i + 1])) {
+        path.push(points[i]);
+        anchor = points[i];
+      }
+    }
+    return path;
+  }
+
+  navLineFree(a, b) {
+    const steps = Math.ceil(Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y) / (this.nav.cell / 2));
+    for (let i = 1; i <= steps; i++) {
+      const x = a.x + ((b.x - a.x) * i) / steps;
+      const y = a.y + ((b.y - a.y) * i) / steps;
+      if (!this.nav.free[this.navCellAt(x, y)]) return false;
+    }
+    return true;
+  }
+
 
   returnPlayerToSeat() {
     const { seat } = SNEAK_LAYOUT;
@@ -288,6 +439,8 @@ class SneakScene extends LevelScene {
   openDoor() {
     this.doorBlock.destroy();
     this.doorBlock = null;
+    this.buildNavGrid(); // Türöffnung ist jetzt begehbar
+    this.fingerPath = null;
     SFX.powerup();
     showBanner(this, 'Alle ECTS! Die Tür ist offen 🚪', CSS.success, 1100, 30);
   }
